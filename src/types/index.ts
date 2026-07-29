@@ -170,6 +170,13 @@ export interface ApiResponse<T = any> {
   errorDetails?: any;
 }
 
+export interface AuthData {
+  user: User;
+  token: string;
+}
+
+export type AuthResponse = ApiResponse<AuthData>;
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
@@ -193,11 +200,6 @@ export interface RegisterCredentials {
   password: string;
   phone?: string;
   role: 'CUSTOMER' | 'TECHNICIAN' | 'ADMIN';
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
 }
 
 // ============================================
