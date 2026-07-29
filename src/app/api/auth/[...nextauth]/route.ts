@@ -25,7 +25,6 @@ const handler = NextAuth({
             }
           );
 
-          // Check if the response is successful and has data
           if (response.data?.success && response.data?.data) {
             const { user, token } = response.data.data;
             return {
@@ -33,8 +32,8 @@ const handler = NextAuth({
               name: user.name,
               email: user.email,
               role: user.role,
-              token: token,
-              user: user,
+              token,
+              user,
             };
           }
           return null;

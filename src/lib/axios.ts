@@ -14,9 +14,7 @@ api.interceptors.request.use(
   async (config) => {
     try {
       const session = await getSession();
-      // Type guard to safely access token
-      const token = session?.user && 'token' in session.user ? (session.user as any).token : null;
-
+      const token = (session?.user as any)?.token;
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -34,7 +32,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       if (typeof window !== 'undefined') {
