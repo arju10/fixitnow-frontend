@@ -37,48 +37,6 @@ export function useServices(filters?: ServiceFilters) {
     }
   }, []);
 
-  const createService = useCallback(
-    async (data: any) => {
-      try {
-        const response = await api.post('/services', data);
-        if (response.data.success) {
-          await fetchServices();
-          return response.data.data;
-        }
-      } catch (err) {
-        throw err;
-      }
-    },
-    [fetchServices]
-  );
-
-  const updateService = useCallback(
-    async (id: string, data: any) => {
-      try {
-        const response = await api.put(`/services/${id}`, data);
-        if (response.data.success) {
-          await fetchServices();
-          return response.data.data;
-        }
-      } catch (err) {
-        throw err;
-      }
-    },
-    [fetchServices]
-  );
-
-  const deleteService = useCallback(
-    async (id: string) => {
-      try {
-        await api.delete(`/services/${id}`);
-        await fetchServices();
-      } catch (err) {
-        throw err;
-      }
-    },
-    [fetchServices]
-  );
-
   useEffect(() => {
     fetchServices();
   }, [fetchServices]);
@@ -89,8 +47,5 @@ export function useServices(filters?: ServiceFilters) {
     error,
     fetchServices,
     getService,
-    createService,
-    updateService,
-    deleteService,
   };
 }
