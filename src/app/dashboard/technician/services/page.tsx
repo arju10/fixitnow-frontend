@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useServices } from '@/hooks/useServices';
 import { useCategories } from '@/hooks/useCategories';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -14,6 +15,7 @@ import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function TechnicianServicesPage() {
+  const { user } = useAuth();
   const { services, loading, fetchServices, createService, updateService, deleteService } =
     useServices();
   const { categories } = useCategories();
@@ -25,6 +27,11 @@ export default function TechnicianServicesPage() {
     price: '',
     durationMins: '',
     categoryId: '',
+  });
+
+  // Filter services to show only the technician's own services
+  const myServices = services.filter((service) => {
+    return service.technician?.user?.id === user?.id;
   });
 
   useEffect(() => {
@@ -194,16 +201,16 @@ export default function TechnicianServicesPage() {
         </Card>
       )}
 
-      {/* Services List */}
+      {/* Services List - Only showing technician's services */}
       {loading ? (
         <div className="grid grid-cols-1 gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-32 animate-pulse rounded-lg bg-muted/50" />
           ))}
         </div>
-      ) : services.length > 0 ? (
+      ) : myServices.length > 0 ? (
         <div className="grid grid-cols-1 gap-4">
-          {services.map((service) => (
+          {myServices.map((service) => (
             <Card key={service.id}>
               <CardContent className="p-4">
                 {editingId === service.id ? (
