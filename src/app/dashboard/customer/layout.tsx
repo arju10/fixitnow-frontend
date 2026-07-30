@@ -59,13 +59,13 @@ export default function CustomerDashboardLayout({ children }: { children: React.
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
                         isActive
-                          ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                          ? 'bg-primary/10 text-primary'
                           : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
-                      <Icon className={cn('h-4 w-4', isActive && 'text-primary-foreground')} />
+                      <Icon className={cn('h-4 w-4', isActive && 'text-primary')} />
                       {item.label}
                     </Link>
                   );
