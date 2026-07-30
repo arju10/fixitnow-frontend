@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Users, Calendar, FolderTree, DollarSign, ArrowRight } from 'lucide-react';
+import { Users, Calendar, FolderTree, DollarSign, ArrowRight, Wrench } from 'lucide-react';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 
@@ -50,7 +50,7 @@ export default function AdminDashboardPage() {
     {
       label: 'Technicians',
       value: stats.totalTechnicians,
-      icon: Users,
+      icon: Wrench,
       color: 'text-purple-600',
       bg: 'bg-purple-50',
     },
