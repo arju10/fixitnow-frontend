@@ -14,10 +14,10 @@ export const registerSchema = z.object({
   role: z.enum(['CUSTOMER', 'TECHNICIAN', 'ADMIN']),
 });
 
-// Booking validation
+// Booking validation - Updated for datetime-local format
 export const bookingSchema = z.object({
   serviceId: z.string().min(1, 'Please select a service'),
-  scheduledAt: z.string().datetime('Please select a valid date and time'),
+  scheduledAt: z.string().min(1, 'Please select a date and time'),
   notes: z.string().optional(),
 });
 

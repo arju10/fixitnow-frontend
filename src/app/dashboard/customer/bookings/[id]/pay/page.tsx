@@ -7,7 +7,7 @@ import api from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { BookingStatusBadge } from '@/components/bookings/BookingStatusBadge';
-import { ArrowLeft, CreditCard, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CreditCard, Lock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { formatPrice, formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -60,10 +60,9 @@ export default function PaymentPage() {
         throw new Error(createResponse.data.message || 'Failed to create payment');
       }
 
-      const { paymentIntentId, clientSecret } = createResponse.data.data;
+      const { paymentIntentId } = createResponse.data.data;
 
-      // 2. Simulate payment confirmation (in production, this would use Stripe Elements)
-      // For demo purposes, we'll confirm the payment via our API
+      // 2. Confirm payment
       const confirmResponse = await api.post('/payments/confirm', {
         paymentIntentId: paymentIntentId,
       });
@@ -242,43 +241,39 @@ export default function PaymentPage() {
               </div>
 
               {/* Payment Button */}
-              {paymentStatus === 'idle' && (
-                <Button
-                  onClick={handlePayment}
-                  className="h-12 w-full gap-2 text-base font-medium"
-                  disabled={processing}
-                >
-                  {processing ? (
-                    'Processing...'
-                  ) : (
-                    <>
-                      <CreditCard className="h-5 w-5" />
-                      Pay {formatPrice(booking.totalAmount)}
-                    </>
-                  )}
-                </Button>
-              )}
+              <div className="space-y-3">
+                {paymentStatus === 'idle' && (
+                  <Button
+                    onClick={handlePayment}
+                    className="h-12 w-full gap-2 text-base font-medium"
+                    disabled={processing}
+                  >
+                    <CreditCard className="h-5 w-5" />
+                    Pay {formatPrice(booking.totalAmount)}
+                  </Button>
+                )}
 
-              {paymentStatus === 'processing' && (
-                <div className="py-4 text-center">
-                  <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
-                  <p className="mt-2 text-sm text-muted-foreground">Processing your payment...</p>
+                {paymentStatus === 'processing' && (
+                  <div className="py-4 text-center">
+                    <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+                    <p className="mt-2 text-sm text-muted-foreground">Processing your payment...</p>
+                  </div>
+                )}
+
+                {paymentStatus === 'error' && (
+                  <Button
+                    onClick={handlePayment}
+                    className="h-12 w-full text-base font-medium"
+                    variant="outline"
+                  >
+                    Try Again
+                  </Button>
+                )}
+
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                  <Lock className="h-3 w-3" />
+                  <span>Secure payment processed by Stripe</span>
                 </div>
-              )}
-
-              {paymentStatus === 'error' && (
-                <Button
-                  onClick={handlePayment}
-                  className="h-12 w-full text-base font-medium"
-                  variant="outline"
-                >
-                  Try Again
-                </Button>
-              )}
-
-              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <Lock className="h-3 w-3" />
-                <span>Secure payment processed by Stripe</span>
               </div>
             </CardContent>
           </Card>

@@ -26,6 +26,7 @@ export default function NewBookingPage() {
   const [service, setService] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [dateError, setDateError] = useState('');
 
   const {
     register,
@@ -41,6 +42,8 @@ export default function NewBookingPage() {
       notes: '',
     },
   });
+
+  const scheduledAt = watch('scheduledAt');
 
   useEffect(() => {
     const fetchService = async () => {
@@ -61,10 +64,37 @@ export default function NewBookingPage() {
     fetchService();
   }, [serviceId, getService, setValue]);
 
+  // Validate date is not in the past
+  const validateDate = (value: string) => {
+    if (!value) {
+      setDateError('Please select a date and time');
+      return false;
+    }
+    const selectedDate = new Date(value);
+    const now = new Date();
+    if (selectedDate < now) {
+      setDateError('Please select a future date and time');
+      return false;
+    }
+    setDateError('');
+    return true;
+  };
+
   const onSubmit = async (data: BookingInput) => {
+    // Validate date
+    if (!validateDate(data.scheduledAt)) {
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const booking = await createBooking(data);
+      // Format date for API
+      const formattedData = {
+        ...data,
+        scheduledAt: new Date(data.scheduledAt).toISOString(),
+      };
+
+      const booking = await createBooking(formattedData);
       toast.success('Booking created successfully!');
       router.push(`/dashboard/customer/bookings/${booking.id}`);
     } catch (error: any) {
@@ -73,6 +103,11 @@ export default function NewBookingPage() {
       setSubmitting(false);
     }
   };
+
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const defaultTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
   if (loading) {
     return (
@@ -93,9 +128,6 @@ export default function NewBookingPage() {
       </div>
     );
   }
-
-  // Get today's date in YYYY-MM-DD format for min date
-  const today = new Date().toISOString().split('T')[0];
 
   return (
     <div className="space-y-6">
@@ -129,11 +161,17 @@ export default function NewBookingPage() {
                     type="datetime-local"
                     min={`${today}T08:00`}
                     {...register('scheduledAt')}
-                    error={!!errors.scheduledAt}
+                    onChange={(e) => {
+                      setValue('scheduledAt', e.target.value);
+                      validateDate(e.target.value);
+                    }}
+                    error={!!errors.scheduledAt || !!dateError}
                     disabled={submitting}
                   />
-                  {errors.scheduledAt && (
-                    <p className="text-sm text-red-500">{errors.scheduledAt.message}</p>
+                  {(errors.scheduledAt || dateError) && (
+                    <p className="text-sm text-red-500">
+                      {errors.scheduledAt?.message || dateError}
+                    </p>
                   )}
                 </div>
 
@@ -197,9 +235,9 @@ export default function NewBookingPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg bg-muted/30 p-3 text-xs text-muted-foreground">
+              <div className="space-y-1 rounded-lg bg-muted/30 p-3 text-xs text-muted-foreground">
                 <p>⚠️ Your booking will be confirmed once the technician accepts it.</p>
-                <p className="mt-1">Free cancellation up to 24 hours before the scheduled time.</p>
+                <p>Free cancellation up to 24 hours before the scheduled time.</p>
               </div>
             </CardContent>
           </Card>
