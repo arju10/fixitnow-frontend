@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Plus, Trash2, Clock, Check, X } from 'lucide-react';
+import { Plus, Trash2, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '@/lib/axios';
 
 const DAYS = [
   { value: 0, label: 'Sunday' },
@@ -20,14 +21,12 @@ const DAYS = [
 ];
 
 export default function TechnicianAvailabilityPage() {
-  const { availability, loading, fetchAvailability, addAvailability, deleteAvailability } =
-    useTechnicians();
+  const { availability, loading, fetchAvailability } = useTechnicians();
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
     dayOfWeek: 1,
     startTime: '09:00',
     endTime: '17:00',
-    isActive: true,
   });
 
   useEffect(() => {
@@ -46,20 +45,32 @@ export default function TechnicianAvailabilityPage() {
     }
 
     try {
-      await addAvailability(formData);
-      setIsAdding(false);
-      setFormData({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00', isActive: true });
-    } catch (error) {
-      toast.error('Failed to add availability slot');
+      const response = await api.post('/technicians/availability', {
+        dayOfWeek: formData.dayOfWeek,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        isActive: true,
+      });
+
+      if (response.data.success) {
+        toast.success('Availability slot added');
+        setIsAdding(false);
+        setFormData({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00' });
+        await fetchAvailability();
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to add availability');
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this availability slot?')) return;
     try {
-      await deleteAvailability(id);
-    } catch (error) {
-      toast.error('Failed to delete availability slot');
+      await api.delete(`/technicians/availability/${id}`);
+      toast.success('Availability slot deleted');
+      await fetchAvailability();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to delete availability');
     }
   };
 
@@ -134,12 +145,7 @@ export default function TechnicianAvailabilityPage() {
                 variant="outline"
                 onClick={() => {
                   setIsAdding(false);
-                  setFormData({
-                    dayOfWeek: 1,
-                    startTime: '09:00',
-                    endTime: '17:00',
-                    isActive: true,
-                  });
+                  setFormData({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00' });
                 }}
               >
                 Cancel

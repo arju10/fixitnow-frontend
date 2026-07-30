@@ -1,19 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTechnicians } from '@/hooks/useTechnicians';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { User, Mail, Phone, MapPin, Briefcase, Star } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Briefcase, Star, Calendar } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import api from '@/lib/axios';
 
 export default function TechnicianProfilePage() {
   const { user } = useAuth();
-  const { technicians, fetchTechnicians } = useTechnicians();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -21,44 +20,62 @@ export default function TechnicianProfilePage() {
     bio: '',
     experienceYrs: '',
     location: '',
+    phone: '',
   });
 
   useEffect(() => {
     const loadProfile = async () => {
-      await fetchTechnicians();
-      const tech = technicians.find((t) => t.userId === user?.id);
-      if (tech) {
-        setProfile(tech);
-        setFormData({
-          bio: tech.bio || '',
-          experienceYrs: tech.experienceYrs?.toString() || '',
-          location: tech.location || '',
-        });
+      try {
+        setLoading(true);
+        // Fetch technician profile using the correct endpoint
+        const response = await api.get('/technicians/profile');
+
+        if (response.data.success) {
+          const tech = response.data.data;
+          setProfile(tech);
+          setFormData({
+            bio: tech.bio || '',
+            experienceYrs: tech.experienceYrs?.toString() || '',
+            location: tech.location || '',
+            phone: tech.user?.phone || user?.phone || '',
+          });
+        } else {
+          toast.error('Failed to load profile');
+        }
+      } catch (error: any) {
+        console.error('Profile load error:', error);
+        toast.error(error.response?.data?.message || 'Failed to load profile');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    loadProfile();
-  }, [technicians, user, fetchTechnicians]);
+
+    if (user?.id) {
+      loadProfile();
+    }
+  }, [user]);
 
   const handleUpdate = async () => {
     try {
-      // Update profile via API
-      const response = await fetch('/api/technicians/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bio: formData.bio,
-          experienceYrs: parseInt(formData.experienceYrs) || 0,
-          location: formData.location,
-        }),
+      // Update technician profile
+      const response = await api.put('/technicians/profile', {
+        bio: formData.bio,
+        experienceYrs: parseInt(formData.experienceYrs) || 0,
+        location: formData.location,
       });
-      if (response.ok) {
+
+      if (response.data.success) {
         toast.success('Profile updated successfully');
         setIsEditing(false);
-        await fetchTechnicians();
+
+        // Refresh profile
+        const refreshResponse = await api.get('/technicians/profile');
+        if (refreshResponse.data.success) {
+          setProfile(refreshResponse.data.data);
+        }
       }
-    } catch (error) {
-      toast.error('Failed to update profile');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update profile');
     }
   };
 
@@ -105,6 +122,7 @@ export default function TechnicianProfilePage() {
                       value={formData.experienceYrs}
                       onChange={(e) => setFormData({ ...formData, experienceYrs: e.target.value })}
                       placeholder="5"
+                      min="0"
                     />
                   </div>
                   <div className="space-y-2">
@@ -131,8 +149,14 @@ export default function TechnicianProfilePage() {
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold">{user?.name}</h3>
-                      <p className="text-sm text-muted-foreground">{user?.email}</p>
-                      <p className="text-sm text-muted-foreground">{user?.phone || 'No phone'}</p>
+                      <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Mail className="h-3 w-3" />
+                        {user?.email}
+                      </p>
+                      <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Phone className="h-3 w-3" />
+                        {formData.phone || 'No phone number'}
+                      </p>
                     </div>
                   </div>
                   <div className="space-y-3 border-t pt-4">
@@ -142,7 +166,7 @@ export default function TechnicianProfilePage() {
                         {profile?.bio || 'No bio provided'}
                       </p>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-6">
                       <div>
                         <p className="text-sm font-medium">Experience</p>
                         <p className="text-sm text-muted-foreground">
@@ -156,7 +180,7 @@ export default function TechnicianProfilePage() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-6">
                       <div>
                         <p className="text-sm font-medium">Rating</p>
                         <div className="flex items-center gap-1">
@@ -209,6 +233,15 @@ export default function TechnicianProfilePage() {
                 <div>
                   <p className="text-sm font-medium">Total Reviews</p>
                   <p className="text-sm text-muted-foreground">{profile?.totalReviews || 0}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Joined</p>
+                  <p className="text-sm text-muted-foreground">
+                    {profile?.createdAt ? formatDate(profile.createdAt) : 'N/A'}
+                  </p>
                 </div>
               </div>
             </CardContent>

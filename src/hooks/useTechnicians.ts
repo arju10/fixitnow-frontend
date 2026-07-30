@@ -2,11 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/axios';
-import type { TechnicianProfile } from '@/types';
 import toast from 'react-hot-toast';
 
 export function useTechnicians() {
-  const [technicians, setTechnicians] = useState<TechnicianProfile[]>([]);
+  const [technicians, setTechnicians] = useState<any[]>([]);
   const [availability, setAvailability] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,10 +34,12 @@ export function useTechnicians() {
       const response = await api.get('/technicians/availability');
       if (response.data.success) {
         setAvailability(response.data.data);
+      } else {
+        setAvailability([]);
       }
-    } catch (err) {
-      setError('Failed to fetch availability');
-      toast.error('Failed to load availability');
+    } catch (err: any) {
+      // If 404 or error, just set empty array
+      setAvailability([]);
     } finally {
       setLoading(false);
     }
