@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Search, UserCheck, UserX, RefreshCw } from 'lucide-react';
+import { Search, UserCheck, UserX, RefreshCw, Users } from 'lucide-react';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 
@@ -124,7 +124,7 @@ export default function AdminUsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b bg-muted/50">
+                <tr className="border-b bg-muted/30">
                   <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Email</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Role</th>
@@ -134,7 +134,7 @@ export default function AdminUsersPage() {
               </thead>
               <tbody>
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b last:border-0 hover:bg-muted/30">
+                  <tr key={user.id} className="border-b last:border-0 hover:bg-muted/20">
                     <td className="px-4 py-3 text-sm font-medium">{user.name}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{user.email}</td>
                     <td className="px-4 py-3">
@@ -174,7 +174,11 @@ export default function AdminUsersPage() {
         </div>
       ) : (
         <div className="rounded-lg border py-12 text-center">
-          <p className="text-muted-foreground">No users found</p>
+          <Users className="mx-auto h-12 w-12 text-muted-foreground/50" />
+          <h3 className="mt-4 text-lg font-medium">No users found</h3>
+          <p className="text-sm text-muted-foreground">
+            {search ? 'Try adjusting your search' : 'No users registered yet'}
+          </p>
         </div>
       )}
     </div>
