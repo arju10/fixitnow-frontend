@@ -25,6 +25,56 @@ export function useBookings() {
     }
   }, []);
 
+  const createBooking = useCallback(
+    async (data: any) => {
+      try {
+        const response = await api.post('/bookings', data);
+        if (response.data.success) {
+          await fetchBookings();
+          return response.data.data;
+        }
+      } catch (err) {
+        toast.error('Failed to create booking');
+        throw err;
+      }
+    },
+    [fetchBookings]
+  );
+
+  const updateBookingStatus = useCallback(
+    async (bookingId: string, status: string) => {
+      try {
+        const response = await api.patch(`/bookings/${bookingId}/status`, { status });
+        if (response.data.success) {
+          toast.success(`Booking ${status.toLowerCase()} successfully`);
+          await fetchBookings();
+          return response.data.data;
+        }
+      } catch (err) {
+        toast.error('Failed to update booking status');
+        throw err;
+      }
+    },
+    [fetchBookings]
+  );
+
+  const cancelBooking = useCallback(
+    async (bookingId: string) => {
+      try {
+        const response = await api.patch(`/bookings/${bookingId}/cancel`);
+        if (response.data.success) {
+          toast.success('Booking cancelled successfully');
+          await fetchBookings();
+          return response.data.data;
+        }
+      } catch (err) {
+        toast.error('Failed to cancel booking');
+        throw err;
+      }
+    },
+    [fetchBookings]
+  );
+
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
@@ -34,5 +84,8 @@ export function useBookings() {
     loading,
     error,
     fetchBookings,
+    createBooking,
+    updateBookingStatus,
+    cancelBooking,
   };
 }
