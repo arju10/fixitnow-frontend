@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { LayoutDashboard, Calendar, CreditCard, Star, User, LogOut, Home } from 'lucide-react';
@@ -17,6 +17,7 @@ const navItems = [
 export default function CustomerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, role, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -49,17 +50,22 @@ export default function CustomerDashboardLayout({ children }: { children: React.
               <div className="space-y-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== '/dashboard/customer' && pathname?.startsWith(item.href));
+
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={cn(
                         'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                        'hover:bg-accent hover:text-accent-foreground',
-                        'text-muted-foreground'
+                        isActive
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className={cn('h-4 w-4', isActive && 'text-primary-foreground')} />
                       {item.label}
                     </Link>
                   );

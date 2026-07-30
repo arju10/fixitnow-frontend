@@ -56,6 +56,11 @@ export function Navbar() {
     await logout();
   };
 
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname?.startsWith(href);
+  };
+
   return (
     <header
       className={cn(
@@ -75,27 +80,30 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden items-center space-x-1 md:flex">
-          {navLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200',
-                pathname === href
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-              )}
-            >
-              {label}
-            </Link>
-          ))}
+          {navLinks.map(({ href, label }) => {
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  'rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200',
+                  active
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                )}
+              >
+                {label}
+              </Link>
+            );
+          })}
 
           {isAuthenticated && (
             <Link
               href={getDashboardLink()}
               className={cn(
                 'flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200',
-                pathname.startsWith('/dashboard')
+                pathname?.startsWith('/dashboard')
                   ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-accent hover:text-foreground'
               )}
@@ -151,29 +159,32 @@ export function Navbar() {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="bg-background/98 space-y-2 border-t p-4 backdrop-blur-lg duration-200 animate-in slide-in-from-top-5 md:hidden">
-          {navLinks.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
-                pathname === href
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-              )}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
-          ))}
+          {navLinks.map(({ href, label, icon: Icon }) => {
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
+                  active
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                )}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </Link>
+            );
+          })}
 
           {isAuthenticated && (
             <Link
               href={getDashboardLink()}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
-                pathname.startsWith('/dashboard')
+                pathname?.startsWith('/dashboard')
                   ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-accent hover:text-foreground'
               )}
