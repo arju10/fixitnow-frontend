@@ -22,6 +22,11 @@ export default function TechnicianDashboardPage() {
     completed: 0,
   });
 
+  // Filter services to show only the technician's own services
+  const myServices = services.filter((service) => {
+    return service.technician?.user?.id === user?.id;
+  });
+
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
@@ -124,7 +129,7 @@ export default function TechnicianDashboardPage() {
         )}
       </div>
 
-      {/* Services Summary */}
+      {/* Services Summary - Showing only technician's services */}
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">My Services</h2>
@@ -140,7 +145,7 @@ export default function TechnicianDashboardPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Wrench className="h-5 w-5 text-muted-foreground" />
-                <span>{services.length} services offered</span>
+                <span>{myServices.length} services offered</span>
               </div>
               <Link href="/dashboard/technician/services">
                 <Button size="sm" variant="outline">
