@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,13 +11,17 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, isLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<'credentials' | 'not_found' | 'banned' | 'server'>(
     'credentials'
   );
+
+  // Get the redirect URL from query params
+  const redirect = searchParams.get('redirect') || '/';
 
   const {
     register,
@@ -33,10 +37,12 @@ export default function LoginPage() {
 
     const result = await login(data.email, data.password);
 
-    if (!result) {
+    if (result) {
+      // ✅ Redirect to the original page after successful login
+      router.push(redirect);
+    } else {
       // Check the error from the backend
       try {
-        // Try to get more specific error from the response
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -108,7 +114,7 @@ export default function LoginPage() {
                 </p>
                 {errorType === 'not_found' && (
                   <Link
-                    href="/auth/register"
+                    href={`/auth/register?redirect=${encodeURIComponent(redirect)}`}
                     className="mt-1 inline-block text-sm font-medium text-blue-600 hover:underline"
                   >
                     Create an account →
@@ -172,12 +178,23 @@ export default function LoginPage() {
 
           <p className="mt-6 text-center text-sm text-gray-500">
             Don't have an account?{' '}
-            <Link href="/auth/register" className="font-medium text-blue-600 hover:underline">
+            <Link
+              href={`/auth/register?redirect=${encodeURIComponent(redirect)}`}
+              className="font-medium text-blue-600 hover:underline"
+            >
               Create one
             </Link>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

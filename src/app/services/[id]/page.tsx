@@ -33,6 +33,9 @@ export default function ServiceDetailsPage() {
     fetchService();
   }, [params.id, getService]);
 
+  // Get the current URL for redirect
+  const currentUrl = typeof window !== 'undefined' ? window.location.pathname : '';
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -153,7 +156,7 @@ export default function ServiceDetailsPage() {
                   <p className="text-center text-sm text-muted-foreground">
                     Please login to book this service
                   </p>
-                  <Link href={`/auth/login?redirect=/services/${service.id}`}>
+                  <Link href={`/auth/login?redirect=${encodeURIComponent(currentUrl)}`}>
                     <Button className="w-full" variant="outline">
                       Login to Book
                     </Button>

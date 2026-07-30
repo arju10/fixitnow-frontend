@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,10 +18,14 @@ const roleOptions = [
   { value: 'ADMIN', label: 'Admin', icon: '🛡️', description: 'Manage platform' },
 ];
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Get the redirect URL from query params
+  const redirect = searchParams.get('redirect') || '/';
 
   const {
     register,
@@ -44,7 +48,8 @@ export default function RegisterPage() {
     try {
       await api.post('/auth/register', data);
       toast.success('Registration successful! Please login.');
-      router.push('/auth/login');
+      // Redirect to login with the original redirect URL
+      router.push(`/auth/login?redirect=${encodeURIComponent(redirect)}`);
     } catch (err: any) {
       const message = err.response?.data?.message || 'Registration failed. Please try again.';
       setError(message);
@@ -185,12 +190,23 @@ export default function RegisterPage() {
 
           <p className="mt-6 text-center text-sm text-gray-500">
             Already have an account?{' '}
-            <Link href="/auth/login" className="font-medium text-blue-600 hover:underline">
+            <Link
+              href={`/auth/login?redirect=${encodeURIComponent(redirect)}`}
+              className="font-medium text-blue-600 hover:underline"
+            >
               Sign in instead
             </Link>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }
