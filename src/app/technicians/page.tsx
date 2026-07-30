@@ -8,6 +8,18 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Search, MapPin, Star, User } from 'lucide-react';
 
+interface Technician {
+  id: string;
+  user: {
+    name: string;
+  };
+  bio?: string;
+  avgRating?: number;
+  totalReviews?: number;
+  location?: string;
+  experienceYrs?: number;
+}
+
 export default function TechniciansPage() {
   const { technicians, loading, fetchTechnicians } = useTechnicians();
   const [search, setSearch] = useState('');
@@ -56,7 +68,7 @@ export default function TechniciansPage() {
         </div>
       ) : technicians.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {technicians.map((tech) => (
+          {technicians.map((tech: Technician) => (
             <Link href={`/technicians/${tech.id}`} key={tech.id}>
               <Card className="h-full cursor-pointer transition-shadow hover:shadow-lg">
                 <CardHeader>

@@ -1,21 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useServices } from '@/hooks/useServices';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { ArrowLeft, Clock, User, DollarSign, Calendar, Star } from 'lucide-react';
-import { formatPrice, formatDate } from '@/lib/utils';
+import { ArrowLeft, Clock, User, Star } from 'lucide-react';
+import { formatPrice } from '@/lib/utils';
 
 export default function ServiceDetailsPage() {
   const params = useParams();
-  const router = useRouter();
   const { getService } = useServices();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [service, setService] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +73,9 @@ export default function ServiceDetailsPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-2xl">{service.title}</CardTitle>
-                  <Badge className="mt-2">{service.category?.name}</Badge>
+                  <span className="mt-2 inline-block rounded-full bg-muted px-2 py-1 text-xs">
+                    {service.category?.name}
+                  </span>
                 </div>
                 <span className="text-2xl font-bold text-primary">
                   {formatPrice(service.price)}
