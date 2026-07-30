@@ -9,20 +9,13 @@ import { registerSchema, type RegisterInput } from '@/lib/validations';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/Card';
+import { User, Mail, Lock, Phone, Users, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const roleOptions = [
-  { value: 'CUSTOMER', label: 'Customer' },
-  { value: 'TECHNICIAN', label: 'Technician' },
-  { value: 'ADMIN', label: 'Admin' },
+  { value: 'CUSTOMER', label: 'Customer', icon: '👤', description: 'Book services' },
+  { value: 'TECHNICIAN', label: 'Technician', icon: '🔧', description: 'Provide services' },
+  { value: 'ADMIN', label: 'Admin', icon: '🛡️', description: 'Manage platform' },
 ];
 
 export default function RegisterPage() {
@@ -33,6 +26,7 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -40,6 +34,8 @@ export default function RegisterPage() {
       role: 'CUSTOMER',
     },
   });
+
+  const selectedRole = watch('role');
 
   const onSubmit = async (data: RegisterInput) => {
     setIsLoading(true);
@@ -59,97 +55,142 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>Join FixItNow as a Customer, Technician, or Admin</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Brand Header */}
+        <div className="mb-8 text-center">
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-3xl text-blue-600">
+            🔧
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900">FixItNow</h1>
+          <p className="mt-1 text-gray-500">Create your account</p>
+        </div>
+
+        {/* Register Card */}
+        <div className="rounded-2xl bg-white p-8 shadow-xl">
+          {error && (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-900/20">
-                {error}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Full Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="John Doe"
+                  {...register('name')}
+                  error={!!errors.name}
+                  disabled={isLoading}
+                  className="pl-10"
+                />
               </div>
-            )}
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Full Name</label>
-              <Input
-                type="text"
-                placeholder="John Doe"
-                {...register('name')}
-                error={!!errors.name}
-                disabled={isLoading}
-              />
-              {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+              {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
-                type="email"
-                placeholder="you@example.com"
-                {...register('email')}
-                error={!!errors.email}
-                disabled={isLoading}
-              />
-              {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  {...register('email')}
+                  error={!!errors.email}
+                  disabled={isLoading}
+                  className="pl-10"
+                />
+              </div>
+              {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Password</label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                {...register('password')}
-                error={!!errors.password}
-                disabled={isLoading}
-              />
-              {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  {...register('password')}
+                  error={!!errors.password}
+                  disabled={isLoading}
+                  className="pl-10"
+                />
+              </div>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
+              )}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Phone (Optional)</label>
-              <Input
-                type="tel"
-                placeholder="+880 17XXXXXXXX"
-                {...register('phone')}
-                error={!!errors.phone}
-                disabled={isLoading}
-              />
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Phone Number (Optional)
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="tel"
+                  placeholder="+880 17XXXXXXXX"
+                  {...register('phone')}
+                  error={!!errors.phone}
+                  disabled={isLoading}
+                  className="pl-10"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Role</label>
-              <select
-                className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                {...register('role')}
-                disabled={isLoading}
-              >
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                I want to join as
+              </label>
+              <div className="grid grid-cols-3 gap-2">
                 {roleOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
+                  <label
+                    key={option.value}
+                    className={`relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 p-3 text-center transition-all hover:border-blue-400 hover:bg-blue-50 ${
+                      selectedRole === option.value
+                        ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200'
+                        : 'border-gray-200'
+                    } `}
+                  >
+                    <input
+                      type="radio"
+                      value={option.value}
+                      {...register('role')}
+                      className="sr-only"
+                    />
+                    <span className="text-2xl">{option.icon}</span>
+                    <span className="mt-1 text-xs font-medium">{option.label}</span>
+                    <span className="text-[10px] text-gray-500">{option.description}</span>
+                  </label>
                 ))}
-              </select>
-              {errors.role && <p className="text-sm text-red-500">{errors.role.message}</p>}
+              </div>
+              {errors.role && <p className="mt-1 text-sm text-red-500">{errors.role.message}</p>}
             </div>
 
-            <Button type="submit" className="w-full" isLoading={isLoading}>
-              Register
+            <Button
+              type="submit"
+              className="group h-11 w-full gap-2 text-base font-medium"
+              isLoading={isLoading}
+            >
+              {isLoading ? 'Creating account...' : 'Create Account'}
+              {!isLoading && (
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              )}
             </Button>
           </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+
+          <p className="mt-6 text-center text-sm text-gray-500">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-primary hover:underline">
-              Login
+            <Link href="/auth/login" className="font-medium text-blue-600 hover:underline">
+              Sign in instead
             </Link>
           </p>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getSession } from 'next-auth/react';
+import toast from 'react-hot-toast';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
@@ -32,11 +33,18 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       if (typeof window !== 'undefined') {
+        toast.error('Session expired. Please login again.');
         window.location.href = '/auth/login';
       }
+    }
+
+    // Show error toast for non-401 errors
+    if (error.response?.status !== 401 && error.response?.data?.message) {
+      toast.error(error.response.data.message);
     }
 
     if (process.env.NODE_ENV === 'development') {

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 export function useAuth() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -20,15 +20,29 @@ export function useAuth() {
       });
 
       if (result?.error) {
-        toast.error(result.error || 'Login failed');
+        // Check if error is from the backend
+        if (result.error.includes('Invalid credentials')) {
+          toast.error('Invalid email or password');
+        } else if (result.error.includes('not found')) {
+          toast.error('Account not found. Please register first.');
+        } else if (result.error.includes('banned')) {
+          toast.error('Account banned. Contact support.');
+        } else {
+          toast.error(result.error || 'Login failed');
+        }
         return false;
       }
 
+      await update();
       toast.success('Login successful!');
-      router.push('/');
       return true;
-    } catch (error) {
-      toast.error('An error occurred during login');
+    } catch (error: any) {
+      const message = error?.response?.data?.message || 'Login failed';
+      if (message.includes('not found')) {
+        toast.error('Account not found. Please register first.');
+      } else {
+        toast.error(message);
+      }
       return false;
     } finally {
       setLoading(false);
@@ -49,5 +63,7 @@ export function useAuth() {
     isLoading: status === 'loading' || loading,
     login,
     logout,
+    session,
+    update,
   };
 }

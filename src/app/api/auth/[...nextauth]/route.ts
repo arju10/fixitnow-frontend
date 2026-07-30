@@ -13,7 +13,7 @@ const handler = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          throw new Error('Please provide email and password');
         }
 
         try {
@@ -32,14 +32,35 @@ const handler = NextAuth({
               name: user.name,
               email: user.email,
               role: user.role,
-              token,
-              user,
+              token: token,
+              user: user,
             };
           }
-          return null;
-        } catch (error) {
-          console.error('Login error:', error);
-          return null;
+
+          // Check for specific error messages from backend
+          if (response.data?.message) {
+            throw new Error(response.data.message);
+          }
+
+          throw new Error('Invalid credentials');
+        } catch (error: any) {
+          // Handle different error types
+          const message = error.response?.data?.message || error.message || 'Login failed';
+
+          // If email not found, show specific message
+          if (
+            message.toLowerCase().includes('not found') ||
+            message.toLowerCase().includes('no user')
+          ) {
+            throw new Error('Account not found. Please register first.');
+          }
+
+          // If banned
+          if (message.toLowerCase().includes('banned')) {
+            throw new Error('Account banned. Contact support.');
+          }
+
+          throw new Error(message);
         }
       },
     }),
