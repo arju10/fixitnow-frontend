@@ -1,6 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/ui/Badge';
 import type { Booking } from '@/types';
 
 interface BookingStatusBadgeProps {
@@ -9,42 +8,67 @@ interface BookingStatusBadgeProps {
 }
 
 export function BookingStatusBadge({ status, className }: BookingStatusBadgeProps) {
-  const statusConfig = {
-    REQUESTED: {
-      label: 'Requested',
-      variant: 'warning' as const,
-    },
-    ACCEPTED: {
-      label: 'Accepted',
-      variant: 'info' as const,
-    },
-    DECLINED: {
-      label: 'Declined',
-      variant: 'destructive' as const,
-    },
-    PAID: {
-      label: 'Paid',
-      variant: 'purple' as const,
-    },
-    IN_PROGRESS: {
-      label: 'In Progress',
-      variant: 'success' as const,
-    },
-    COMPLETED: {
-      label: 'Completed',
-      variant: 'default' as const,
-    },
-    CANCELLED: {
-      label: 'Cancelled',
-      variant: 'destructive' as const,
-    },
+  const getStatusStyles = () => {
+    switch (status) {
+      case 'REQUESTED':
+        return { backgroundColor: '#eab308', color: '#ffffff' }; // Yellow
+      case 'ACCEPTED':
+        return { backgroundColor: '#3b82f6', color: '#ffffff' }; // Blue
+      case 'DECLINED':
+        return { backgroundColor: '#ef4444', color: '#ffffff' }; // Red
+      case 'PAID':
+        return { backgroundColor: '#a855f7', color: '#ffffff' }; // Purple
+      case 'IN_PROGRESS':
+        return { backgroundColor: '#22c55e', color: '#ffffff' }; // Green
+      case 'COMPLETED':
+        return { backgroundColor: '#6b7280', color: '#ffffff' }; // Gray
+      case 'CANCELLED':
+        return { backgroundColor: '#991b1b', color: '#ffffff' }; // Dark Red
+      default:
+        return { backgroundColor: '#6b7280', color: '#ffffff' };
+    }
   };
 
-  const config = statusConfig[status] || statusConfig.REQUESTED;
+  const getLabel = () => {
+    switch (status) {
+      case 'REQUESTED':
+        return 'Requested';
+      case 'ACCEPTED':
+        return 'Accepted';
+      case 'DECLINED':
+        return 'Declined';
+      case 'PAID':
+        return 'Paid';
+      case 'IN_PROGRESS':
+        return 'In Progress';
+      case 'COMPLETED':
+        return 'Completed';
+      case 'CANCELLED':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  };
+
+  const styles = getStatusStyles();
 
   return (
-    <Badge variant={config.variant} className={className}>
-      {config.label}
-    </Badge>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        borderRadius: '9999px',
+        padding: '0.125rem 0.75rem',
+        fontSize: '0.75rem',
+        fontWeight: '600',
+        lineHeight: '1.5rem',
+        backgroundColor: styles.backgroundColor,
+        color: styles.color,
+        whiteSpace: 'nowrap',
+      }}
+      className={className}
+    >
+      {getLabel()}
+    </span>
   );
 }
