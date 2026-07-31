@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Plus, Pencil, Trash2, X, Check, FolderTree, RefreshCw } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
+import { Plus, Pencil, Trash2, X, Check, FolderTree, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
 import toast from 'react-hot-toast';
 
@@ -19,6 +20,11 @@ export default function AdminCategoriesPage() {
     name: '',
     description: '',
   });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<{ id: string; name: string } | null>(
+    null
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -54,17 +60,23 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this category? This will also delete all services in this category.'
-      )
-    )
-      return;
+  const handleDeleteClick = (id: string, name: string) => {
+    setCategoryToDelete({ id, name });
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!categoryToDelete) return;
+
+    setIsDeleting(true);
     try {
-      await deleteCategory(id);
+      await deleteCategory(categoryToDelete.id);
+      setDeleteModalOpen(false);
+      setCategoryToDelete(null);
     } catch (error) {
       toast.error('Failed to delete category');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -83,6 +95,29 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setCategoryToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Category"
+        description={`Are you sure you want to delete "${categoryToDelete?.name}"? This will also delete all services in this category.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmVariant="destructive"
+        isLoading={isDeleting}
+      >
+        <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0 text-red-500" />
+          <p className="text-sm text-red-700">
+            This action cannot be undone. All services in this category will be permanently deleted.
+          </p>
+        </div>
+      </Modal>
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Categories</h1>
@@ -203,7 +238,7 @@ export default function AdminCategoriesPage() {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleDelete(category.id)}
+                        onClick={() => handleDeleteClick(category.id, category.name)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
