@@ -24,17 +24,14 @@ export default function TechnicianProfilePage() {
     const loadTechnician = async () => {
       try {
         setPageLoading(true);
-        // Fetch technicians if not loaded
         if (technicians.length === 0) {
           await fetchTechnicians();
         }
 
-        // Find the technician by ID
         const tech = technicians.find((t: any) => t.id === params.id);
         if (tech) {
           setTechnician(tech);
         } else {
-          // If not found in list, fetch directly
           const response = await fetch(`/api/technicians/${params.id}`);
           if (response.ok) {
             const data = await response.json();
@@ -51,6 +48,11 @@ export default function TechnicianProfilePage() {
     };
     loadTechnician();
   }, [params.id, technicians, fetchTechnicians]);
+
+  const handleBookService = (serviceId: string) => {
+    // Redirect to booking form with the specific service
+    router.push(`/dashboard/customer/bookings/new?serviceId=${serviceId}`);
+  };
 
   if (pageLoading || loading) {
     return (
@@ -139,34 +141,48 @@ export default function TechnicianProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Services */}
+          {/* Services with Book Buttons */}
           <Card>
             <CardHeader>
               <CardTitle>Services Offered</CardTitle>
             </CardHeader>
             <CardContent>
               {technician.services && technician.services.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4">
                   {technician.services.map((service: any) => (
-                    <Link href={`/services/${service.id}`} key={service.id}>
-                      <div className="cursor-pointer rounded-lg border p-4 transition-shadow hover:shadow-md">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-semibold">{service.title}</h4>
-                            <p className="line-clamp-2 text-sm text-muted-foreground">
-                              {service.description || 'No description'}
-                            </p>
-                            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <div key={service.id} className="rounded-lg border p-4">
+                      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{service.title}</h4>
+                          <p className="line-clamp-2 text-sm text-muted-foreground">
+                            {service.description || 'No description'}
+                          </p>
+                          <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="text-lg font-bold text-primary">
+                              {formatPrice(service.price)}
+                            </span>
+                            <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
                               {service.durationMins} min
-                            </div>
+                            </span>
                           </div>
-                          <span className="text-lg font-bold text-primary">
-                            {formatPrice(service.price)}
-                          </span>
                         </div>
+                        {isAuthenticated ? (
+                          <Button
+                            onClick={() => handleBookService(service.id)}
+                            className="flex-shrink-0"
+                          >
+                            Book Now
+                          </Button>
+                        ) : (
+                          <Link href={`/auth/login?redirect=/technicians/${technician.id}`}>
+                            <Button variant="outline" className="flex-shrink-0">
+                              Login to Book
+                            </Button>
+                          </Link>
+                        )}
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -216,42 +232,31 @@ export default function TechnicianProfilePage() {
           </Card>
         </div>
 
-        {/* Sidebar - Booking CTA */}
+        {/* Sidebar */}
         <div className="lg:col-span-1">
           <Card className="sticky top-20">
             <CardHeader>
-              <CardTitle className="text-lg">Book This Technician</CardTitle>
+              <CardTitle className="text-lg">About This Technician</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-lg bg-muted/30 p-4 text-center">
-                <p className="text-sm text-muted-foreground">Starting from</p>
-                <p className="text-2xl font-bold text-primary">
-                  {technician.services && technician.services.length > 0
-                    ? formatPrice(Math.min(...technician.services.map((s: any) => s.price)))
-                    : 'N/A'}
-                </p>
+              <div className="flex items-center gap-2 text-sm">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-medium">{technician.avgRating || 0}</span>
+                <span className="text-muted-foreground">
+                  ({technician.totalReviews || 0} reviews)
+                </span>
               </div>
-
-              {isAuthenticated ? (
-                <Link href={`/services?technician=${technician.id}`}>
-                  <Button className="w-full">Book Now</Button>
-                </Link>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-center text-sm text-muted-foreground">
-                    Please login to book this technician
-                  </p>
-                  <Link href={`/auth/login?redirect=/technicians/${technician.id}`}>
-                    <Button className="w-full" variant="outline">
-                      Login to Book
-                    </Button>
-                  </Link>
-                </div>
-              )}
-
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                <span>Free cancellation up to 24 hours before</span>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Briefcase className="h-4 w-4" />
+                {technician.experienceYrs || 0} years experience
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <User className="h-4 w-4" />
+                {technician.services?.length || 0} services offered
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                Member since {technician.createdAt ? formatDate(technician.createdAt) : 'N/A'}
               </div>
             </CardContent>
           </Card>

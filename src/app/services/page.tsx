@@ -1,16 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useServices } from '@/hooks/useServices';
 import { useCategories } from '@/hooks/useCategories';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Search, Filter, X, Clock, User } from 'lucide-react';
+import { Search, Filter, X, User } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
+import { ServiceCardSkeleton } from '@/components/ui/Skeleton';
 
-export default function ServicesPage() {
+function ServicesContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const technicianId = searchParams.get('technicianId') || '';
+
   const { services, loading, fetchServices } = useServices();
   const { categories } = useCategories();
   const [search, setSearch] = useState('');
@@ -21,19 +27,36 @@ export default function ServicesPage() {
     const params: any = {};
     if (search) params.search = search;
     if (selectedCategory) params.categoryId = selectedCategory;
+    if (technicianId) params.technicianId = technicianId;
     fetchServices(params);
-  }, [search, selectedCategory, fetchServices]);
+  }, [search, selectedCategory, technicianId, fetchServices]);
 
   const clearFilters = () => {
     setSearch('');
     setSelectedCategory('');
+    router.push('/services');
   };
+
+  const getTechnicianName = () => {
+    if (services.length > 0 && services[0]?.technician?.user?.name) {
+      return services[0].technician.user.name;
+    }
+    return null;
+  };
+
+  const technicianName = getTechnicianName();
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold">Services</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Services</h1>
+          {technicianId && technicianName && (
+            <p className="text-sm text-muted-foreground">
+              Showing services by <span className="font-medium">{technicianName}</span>
+            </p>
+          )}
+        </div>
         <Button
           variant="outline"
           size="sm"
@@ -57,13 +80,12 @@ export default function ServicesPage() {
                   placeholder="Search services..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="mt-1"
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Category</label>
                 <select
-                  className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
@@ -75,11 +97,27 @@ export default function ServicesPage() {
                   ))}
                 </select>
               </div>
+              {technicianId && (
+                <div className="flex items-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      router.push('/services');
+                      clearFilters();
+                    }}
+                    className="gap-1"
+                  >
+                    <X className="h-4 w-4" />
+                    Clear Technician Filter
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="mt-4 flex justify-end">
               <Button variant="ghost" size="sm" onClick={clearFilters}>
                 <X className="mr-2 h-4 w-4" />
-                Clear Filters
+                Clear All Filters
               </Button>
             </div>
           </CardContent>
@@ -90,15 +128,7 @@ export default function ServicesPage() {
       {loading ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse rounded-lg border bg-card p-4 shadow-sm">
-              <div className="h-6 w-32 rounded bg-muted" />
-              <div className="mt-2 h-4 w-full rounded bg-muted" />
-              <div className="mt-2 h-4 w-3/4 rounded bg-muted" />
-              <div className="mt-4 flex justify-between">
-                <div className="h-4 w-20 rounded bg-muted" />
-                <div className="h-4 w-16 rounded bg-muted" />
-              </div>
-            </div>
+            <ServiceCardSkeleton key={i} />
           ))}
         </div>
       ) : services.length > 0 ? (
@@ -113,7 +143,7 @@ export default function ServicesPage() {
                       {service.category?.name}
                     </span>
                   </div>
-                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                  <p className="line-clamp-2 text-sm text-muted-foreground">
                     {service.description || 'No description available'}
                   </p>
                 </CardHeader>
@@ -122,8 +152,7 @@ export default function ServicesPage() {
                     <span className="text-lg font-bold text-primary">
                       {formatPrice(service.price)}
                     </span>
-                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Clock className="h-3 w-3" />
+                    <span className="text-sm text-muted-foreground">
                       {service.durationMins} min
                     </span>
                   </div>
@@ -137,11 +166,21 @@ export default function ServicesPage() {
           ))}
         </div>
       ) : (
-        <div className="py-12 text-center text-muted-foreground">
-          <p className="text-lg">No services found</p>
-          <p className="text-sm">Try adjusting your filters</p>
+        <div className="rounded-lg border py-12 text-center">
+          <p className="text-lg text-muted-foreground">No services found</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {technicianId ? 'This technician has no services yet' : 'Try adjusting your filters'}
+          </p>
         </div>
       )}
     </div>
+  );
+}
+
+export default function ServicesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ServicesContent />
+    </Suspense>
   );
 }
