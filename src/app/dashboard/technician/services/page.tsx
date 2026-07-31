@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
+import { Plus, Pencil, Trash2, X, Check, AlertTriangle } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -28,6 +29,11 @@ export default function TechnicianServicesPage() {
     durationMins: '',
     categoryId: '',
   });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<{ id: string; title: string } | null>(
+    null
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Filter services to show only the technician's own services
   const myServices = services.filter((service) => {
@@ -76,12 +82,23 @@ export default function TechnicianServicesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this service?')) return;
+  const handleDeleteClick = (id: string, title: string) => {
+    setServiceToDelete({ id, title });
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!serviceToDelete) return;
+
+    setIsDeleting(true);
     try {
-      await deleteService(id);
+      await deleteService(serviceToDelete.id);
+      setDeleteModalOpen(false);
+      setServiceToDelete(null);
     } catch (error) {
       toast.error('Failed to delete service');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -108,6 +125,30 @@ export default function TechnicianServicesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setServiceToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Service"
+        description={`Are you sure you want to delete "${serviceToDelete?.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmVariant="destructive"
+        isLoading={isDeleting}
+      >
+        <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0 text-red-500" />
+          <p className="text-sm text-red-700">
+            This action cannot be undone. All bookings associated with this service will be
+            affected.
+          </p>
+        </div>
+      </Modal>
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">My Services</h1>
         {!isCreating && (
@@ -305,7 +346,7 @@ export default function TechnicianServicesPage() {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => handleDelete(service.id)}
+                          onClick={() => handleDeleteClick(service.id, service.title)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
