@@ -3,16 +3,16 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { useBookings } from '@/hooks/useBookings';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useCustomer } from '@/hooks/useCustomer';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { BookingStatusBadge } from '@/components/bookings/BookingStatusBadge';
-import { Calendar, Clock, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, XCircle, ArrowRight } from 'lucide-react';
 import { formatDate, formatPrice } from '@/lib/utils';
 
 export default function CustomerDashboardPage() {
   const { user } = useAuth();
-  const { bookings, loading, fetchBookings } = useBookings();
+  const { bookings, loading, fetchBookings } = useCustomer();
   const [stats, setStats] = useState({
     total: 0,
     completed: 0,
