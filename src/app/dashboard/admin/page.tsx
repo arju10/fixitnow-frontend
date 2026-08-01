@@ -42,7 +42,12 @@ export default function AdminDashboardPage() {
     { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'blue' },
     { label: 'Technicians', value: stats.totalTechnicians, icon: Wrench, color: 'purple' },
     { label: 'Total Bookings', value: stats.totalBookings, icon: ShoppingBag, color: 'green' },
-    { label: 'Revenue', value: `$${stats.totalRevenue?.toFixed(2) || '0.00'}`, icon: CreditCard, color: 'orange' },
+    {
+      label: 'Revenue',
+      value: `$${stats.totalRevenue?.toFixed(2) || '0.00'}`,
+      icon: CreditCard,
+      color: 'orange',
+    },
   ];
 
   return (

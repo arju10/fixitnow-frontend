@@ -1,13 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Search, RefreshCw, Calendar, ArrowRight, Filter, X } from 'lucide-react';
-import api from '@/lib/axios';
+import { Search, RefreshCw, Calendar, X } from 'lucide-react';
+import { adminApi } from '@/lib/admin';
 import toast from 'react-hot-toast';
 import { formatDate, formatPrice } from '@/lib/utils';
 
@@ -56,11 +54,9 @@ export default function AdminBookingsPage() {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/admin/bookings');
-      if (response.data.success) {
-        setBookings(response.data.data);
-        setFilteredBookings(response.data.data);
-      }
+      const data = await adminApi.getBookings();
+      setBookings(data);
+      setFilteredBookings(data);
     } catch (error) {
       toast.error('Failed to fetch bookings');
     } finally {
