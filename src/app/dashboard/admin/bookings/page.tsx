@@ -194,7 +194,7 @@ export default function AdminBookingsPage() {
                       {booking.technician?.user?.name || 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {formatDate(booking.scheduledAt)}
+                      {booking.scheduledAt ? formatDate(booking.scheduledAt) : 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-sm font-medium">
                       {formatPrice(booking.totalAmount)}
