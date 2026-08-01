@@ -3,39 +3,40 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import api from '@/lib/axios';
+import { useCustomer } from '@/hooks/useCustomer';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { BookingStatusBadge } from '@/components/bookings/BookingStatusBadge';
 import { ArrowLeft, CreditCard, Lock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { paymentApi } from '@/lib/payment';
 import { formatPrice, formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function PaymentPage() {
   const params = useParams();
   const router = useRouter();
+  const { getBookingById } = useCustomer();
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>(
     'idle'
   );
+  const [transactionId, setTransactionId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const response = await api.get(`/bookings/${params.id}`);
-        if (response.data.success) {
-          setBooking(response.data.data);
+        const data = await getBookingById(params.id as string);
+        setBooking(data);
 
-          // Check if already paid
-          if (
-            response.data.data.status === 'PAID' ||
-            response.data.data.status === 'IN_PROGRESS' ||
-            response.data.data.status === 'COMPLETED'
-          ) {
-            setPaymentStatus('success');
-          }
+        // Check if already paid
+        if (
+          data.status === 'PAID' ||
+          data.status === 'IN_PROGRESS' ||
+          data.status === 'COMPLETED'
+        ) {
+          setPaymentStatus('success');
         }
       } catch (error) {
         toast.error('Failed to load booking details');
@@ -44,7 +45,7 @@ export default function PaymentPage() {
       }
     };
     fetchBooking();
-  }, [params.id]);
+  }, [params.id, getBookingById]);
 
   const handlePayment = async () => {
     setProcessing(true);
@@ -52,37 +53,30 @@ export default function PaymentPage() {
 
     try {
       // 1. Create payment intent
-      const createResponse = await api.post('/payments/create', {
-        bookingId: params.id,
+      const payment = await paymentApi.createPayment({
+        bookingId: params.id as string,
+        amount: booking.totalAmount,
       });
 
-      if (!createResponse.data.success) {
-        throw new Error(createResponse.data.message || 'Failed to create payment');
-      }
-
-      const { paymentIntentId } = createResponse.data.data;
+      setTransactionId(payment.transactionId);
 
       // 2. Confirm payment
-      const confirmResponse = await api.post('/payments/confirm', {
-        paymentIntentId: paymentIntentId,
-      });
+      const confirmed = await paymentApi.confirmPayment(payment.transactionId);
 
-      if (confirmResponse.data.success) {
+      if (confirmed.status === 'COMPLETED') {
         setPaymentStatus('success');
         toast.success('Payment successful!');
 
         // Refresh booking data
-        const refreshResponse = await api.get(`/bookings/${params.id}`);
-        if (refreshResponse.data.success) {
-          setBooking(refreshResponse.data.data);
-        }
+        const updated = await getBookingById(params.id as string);
+        setBooking(updated);
 
         // Redirect to booking details after a moment
         setTimeout(() => {
           router.push(`/dashboard/customer/bookings/${params.id}`);
         }, 2000);
       } else {
-        throw new Error(confirmResponse.data.message || 'Payment confirmation failed');
+        throw new Error('Payment confirmation failed');
       }
     } catch (error: any) {
       setPaymentStatus('error');
