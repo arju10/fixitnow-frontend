@@ -62,17 +62,25 @@ export function useCustomer() {
     }
   }, []);
 
-  // ✅ Add fetchPayments method
   const fetchPayments = useCallback(async () => {
     setLoading(true);
     try {
+      console.log('💰 Fetching payments...');
       const response = await api.get('/payments');
+      console.log('💰 Payments response:', response.data);
       if (response.data.success) {
-        setPayments(response.data.data);
+        setPayments(response.data.data || []);
         return response.data.data;
+      } else {
+        console.log('💰 No payments found or error:', response.data.message);
+        setPayments([]);
+        return [];
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error('💰 Error fetching payments:', err.response?.data || err.message);
       setError('Failed to fetch payments');
+      setPayments([]);
+      return [];
     } finally {
       setLoading(false);
     }
