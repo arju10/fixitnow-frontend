@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useBookings } from '@/hooks/useBookings';
+import { useCustomer } from '@/hooks/useCustomer';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { BookingStatusBadge } from '@/components/bookings/BookingStatusBadge';
 import { Card, CardContent } from '@/components/ui/Card';
-import { Search, Calendar, ArrowRight } from 'lucide-react';
+import { Search, Calendar } from 'lucide-react';
 import { formatDate, formatPrice } from '@/lib/utils';
 
 export default function CustomerBookingsPage() {
-  const { bookings, loading, fetchBookings } = useBookings();
+  const { bookings, loading, fetchBookings } = useCustomer();
   const [search, setSearch] = useState('');
   const [filteredBookings, setFilteredBookings] = useState(bookings);
 
@@ -39,9 +39,6 @@ export default function CustomerBookingsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">My Bookings</h1>
-        <Link href="/services">
-          <Button size="sm">Book New Service</Button>
-        </Link>
       </div>
 
       {/* Search */}
@@ -67,22 +64,33 @@ export default function CustomerBookingsPage() {
         <div className="space-y-4">
           {filteredBookings.map((booking) => (
             <Link href={`/dashboard/customer/bookings/${booking.id}`} key={booking.id}>
-              <Card className="cursor-pointer transition-shadow hover:shadow-md">
+              <Card>
                 <CardContent className="p-4">
-                  <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    <div className="min-w-0 flex-1">
+                  <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                    <div>
                       <div className="flex items-center gap-3">
-                        <p className="truncate font-medium">{booking.service?.title}</p>
+                        <p className="font-medium">{booking.service?.title}</p>
                         <BookingStatusBadge status={booking.status} />
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                         {formatDate(booking.scheduledAt)} • {formatPrice(booking.totalAmount)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Technician: {booking.technician?.user?.name || 'Unknown'}
+                        Technician: {booking.technician?.user?.name}
                       </p>
                     </div>
-                    <ArrowRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                    <div className="flex gap-2">
+                      {booking.status === 'COMPLETED' && !booking.review && (
+                        <Link href={`/dashboard/customer/reviews/new?bookingId=${booking.id}`}>
+                          <Button size="sm" variant="outline">
+                            Write Review
+                          </Button>
+                        </Link>
+                      )}
+                      <Button size="sm" variant="outline">
+                        View Details
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -94,13 +102,11 @@ export default function CustomerBookingsPage() {
           <Calendar className="mx-auto h-12 w-12 text-muted-foreground/50" />
           <h3 className="mt-4 text-lg font-medium">No bookings found</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {search ? 'Try adjusting your search' : 'Book your first service today'}
+            {search ? 'Try adjusting your search' : 'You have no bookings yet'}
           </p>
-          {!search && (
-            <Link href="/services">
-              <Button className="mt-4">Browse Services</Button>
-            </Link>
-          )}
+          <Link href="/services">
+            <Button className="mt-4">Browse Services</Button>
+          </Link>
         </div>
       )}
     </div>
