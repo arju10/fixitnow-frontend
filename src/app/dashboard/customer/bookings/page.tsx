@@ -73,10 +73,11 @@ export default function CustomerBookingsPage() {
                         <BookingStatusBadge status={booking.status} />
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {formatDate(booking.scheduledAt)} • {formatPrice(booking.totalAmount)}
+                        {booking.scheduledAt ? formatDate(booking.scheduledAt) : 'N/A'} •{' '}
+                        {formatPrice(booking.totalAmount)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Technician: {booking.technician?.user?.name}
+                        Technician: {booking.technician?.user?.name || 'N/A'}
                       </p>
                     </div>
                     <div className="flex gap-2">
