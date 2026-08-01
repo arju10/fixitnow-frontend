@@ -32,7 +32,6 @@ export default function TechnicianProfilePage() {
         if (tech) {
           setTechnician(tech);
         } else {
-          // Try to fetch directly from API
           const response = await fetch(`/api/technicians/${params.id}`);
           if (response.ok) {
             const data = await response.json();
@@ -191,7 +190,7 @@ export default function TechnicianProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Reviews */}
+          {/* Reviews - FIXED: Added unique key */}
           <Card>
             <CardHeader>
               <CardTitle>Reviews</CardTitle>
@@ -209,7 +208,7 @@ export default function TechnicianProfilePage() {
                           <div className="flex items-center">
                             {[...Array(5)].map((_, i) => (
                               <Star
-                                key={i}
+                                key={`${review.id}-star-${i}`}
                                 className={`h-4 w-4 ${
                                   i < review.rating
                                     ? 'fill-yellow-400 text-yellow-400'
