@@ -32,6 +32,7 @@ export default function TechnicianProfilePage() {
         if (tech) {
           setTechnician(tech);
         } else {
+          // Try to fetch directly from API
           const response = await fetch(`/api/technicians/${params.id}`);
           if (response.ok) {
             const data = await response.json();
@@ -50,7 +51,6 @@ export default function TechnicianProfilePage() {
   }, [params.id, technicians, fetchTechnicians]);
 
   const handleBookService = (serviceId: string) => {
-    // Redirect to booking form with the specific service
     router.push(`/dashboard/customer/bookings/new?serviceId=${serviceId}`);
   };
 
@@ -203,7 +203,9 @@ export default function TechnicianProfilePage() {
                     <div key={review.id} className="border-b pb-4 last:border-0 last:pb-0">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{review.customer?.name}</span>
+                          <span className="font-medium">
+                            {review.customer?.name || 'Anonymous'}
+                          </span>
                           <div className="flex items-center">
                             {[...Array(5)].map((_, i) => (
                               <Star
@@ -256,7 +258,7 @@ export default function TechnicianProfilePage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                Member since {technician.createdAt ? formatDate(technician.createdAt) : 'N/A'}
+                Member since {formatDate(technician.createdAt)}
               </div>
             </CardContent>
           </Card>
