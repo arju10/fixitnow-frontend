@@ -95,7 +95,6 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteModalOpen}
         onClose={() => {
