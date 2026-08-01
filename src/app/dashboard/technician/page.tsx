@@ -22,9 +22,9 @@ export default function TechnicianDashboardPage() {
     completed: 0,
   });
 
-  // Filter services to show only the technician's own services
   const myServices = services.filter((service) => {
-    return service.technician?.user?.id === user?.id;
+    const technicianUserId = service.technician?.user?.id || service.technician?.userId;
+    return technicianUserId === user?.id;
   });
 
   useEffect(() => {
@@ -108,7 +108,8 @@ export default function TechnicianDashboardPage() {
                     <div>
                       <p className="font-medium">{booking.service?.title}</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatDate(booking.scheduledAt)} • {formatPrice(booking.totalAmount)}
+                        {booking.scheduledAt ? formatDate(booking.scheduledAt) : 'N/A'} •{' '}
+                        {formatPrice(booking.totalAmount)}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         Customer: {booking.customer?.name}
