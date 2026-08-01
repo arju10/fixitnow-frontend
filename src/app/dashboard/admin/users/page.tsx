@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Search, UserCheck, UserX, RefreshCw, Users } from 'lucide-react';
-import api from '@/lib/axios';
+import { adminApi } from '@/lib/admin';
 import toast from 'react-hot-toast';
 
 interface User {
@@ -49,11 +49,9 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/admin/users');
-      if (response.data.success) {
-        setUsers(response.data.data);
-        setFilteredUsers(response.data.data);
-      }
+      const data = await adminApi.getUsers();
+      setUsers(data);
+      setFilteredUsers(data);
     } catch (error) {
       toast.error('Failed to fetch users');
     } finally {
@@ -65,13 +63,9 @@ export default function AdminUsersPage() {
     const newStatus = currentStatus === 'ACTIVE' ? 'BANNED' : 'ACTIVE';
     setUpdating(userId);
     try {
-      const response = await api.patch(`/users/${userId}/status`, {
-        status: newStatus,
-      });
-      if (response.data.success) {
-        toast.success(`User ${newStatus === 'ACTIVE' ? 'activated' : 'banned'} successfully`);
-        await fetchUsers();
-      }
+      await adminApi.updateUserStatus(userId, newStatus);
+      toast.success(`User ${newStatus === 'ACTIVE' ? 'activated' : 'banned'} successfully`);
+      await fetchUsers();
     } catch (error) {
       toast.error('Failed to update user status');
     } finally {
