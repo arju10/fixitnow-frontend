@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { reviewSchema, type ReviewInput } from '@/lib/validations';
-import api from '@/lib/axios';
+import { useCustomer } from '@/hooks/useCustomer';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -19,6 +19,7 @@ export default function NewReviewPage() {
   const searchParams = useSearchParams();
   const bookingId = searchParams.get('bookingId');
 
+  const { getBookingById, leaveReview } = useCustomer();
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -46,11 +47,9 @@ export default function NewReviewPage() {
         return;
       }
       try {
-        const response = await api.get(`/bookings/${bookingId}`);
-        if (response.data.success) {
-          setBooking(response.data.data);
-          setValue('bookingId', bookingId);
-        }
+        const data = await getBookingById(bookingId);
+        setBooking(data);
+        setValue('bookingId', bookingId);
       } catch (error) {
         toast.error('Failed to load booking details');
       } finally {
@@ -58,7 +57,7 @@ export default function NewReviewPage() {
       }
     };
     fetchBooking();
-  }, [bookingId, setValue]);
+  }, [bookingId, getBookingById, setValue]);
 
   const handleRatingSelect = (rating: number) => {
     setSelectedRating(rating);
@@ -68,7 +67,7 @@ export default function NewReviewPage() {
   const onSubmit = async (data: ReviewInput) => {
     setSubmitting(true);
     try {
-      await api.post('/reviews', data);
+      await leaveReview(data);
       toast.success('Review submitted successfully!');
       router.push(`/dashboard/customer/bookings/${bookingId}`);
     } catch (error: any) {
@@ -98,7 +97,6 @@ export default function NewReviewPage() {
     );
   }
 
-  // Check if booking is completed
   if (booking.status !== 'COMPLETED') {
     return (
       <div className="space-y-6">
@@ -128,7 +126,6 @@ export default function NewReviewPage() {
     );
   }
 
-  // Check if review already exists
   if (booking.review) {
     return (
       <div className="space-y-6">
@@ -169,7 +166,6 @@ export default function NewReviewPage() {
       <h1 className="text-2xl font-bold">Write a Review</h1>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Review Form */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
@@ -177,7 +173,6 @@ export default function NewReviewPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* Rating */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Rating</label>
                   <div className="flex gap-2">
@@ -205,7 +200,6 @@ export default function NewReviewPage() {
                   {errors.rating && <p className="text-sm text-red-500">{errors.rating.message}</p>}
                 </div>
 
-                {/* Comment */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
                     Your Review <span className="text-muted-foreground">(Optional)</span>
@@ -227,7 +221,6 @@ export default function NewReviewPage() {
           </Card>
         </div>
 
-        {/* Booking Summary */}
         <div className="lg:col-span-1">
           <Card className="sticky top-20">
             <CardHeader>
