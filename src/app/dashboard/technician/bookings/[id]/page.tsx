@@ -51,7 +51,6 @@ export default function TechnicianBookingDetailsPage() {
     setUpdating(true);
     try {
       await updateBookingStatus(params.id as string, status);
-      // Refresh booking data
       const response = await api.get(`/bookings/${params.id}`);
       if (response.data.success) {
         setBooking(response.data.data);
@@ -104,7 +103,9 @@ export default function TechnicianBookingDetailsPage() {
           <h1 className="text-2xl font-bold">{booking.service?.title}</h1>
           <div className="mt-1 flex items-center gap-3">
             <BookingStatusBadge status={booking.status} />
-            <span className="text-sm text-muted-foreground">{formatDate(booking.scheduledAt)}</span>
+            <span className="text-sm text-muted-foreground">
+              {booking.scheduledAt ? formatDate(booking.scheduledAt) : 'N/A'}
+            </span>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
