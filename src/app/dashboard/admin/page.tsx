@@ -5,14 +5,14 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Calendar, ArrowRight } from 'lucide-react';
-import api from '@/lib/axios';
-import toast from 'react-hot-toast';
+import { Calendar, ArrowRight, Users, Wrench, CreditCard, ShoppingBag } from 'lucide-react';
+import { adminApi, AdminStats } from '@/lib/admin';
 import { formatDate, formatPrice } from '@/lib/utils';
+import toast from 'react-hot-toast';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalTechnicians: 0,
     totalCustomers: 0,
@@ -27,10 +27,8 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await api.get('/admin/stats');
-        if (response.data.success) {
-          setStats(response.data.data);
-        }
+        const data = await adminApi.getStats();
+        setStats(data);
       } catch (error) {
         toast.error('Failed to load dashboard stats');
       } finally {
@@ -40,56 +38,49 @@ export default function AdminDashboardPage() {
     fetchStats();
   }, []);
 
+  const statCards = [
+    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'blue' },
+    { label: 'Technicians', value: stats.totalTechnicians, icon: Wrench, color: 'purple' },
+    { label: 'Total Bookings', value: stats.totalBookings, icon: ShoppingBag, color: 'green' },
+    { label: 'Revenue', value: `$${stats.totalRevenue?.toFixed(2) || '0.00'}`, icon: CreditCard, color: 'orange' },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Welcome Section - Same as Customer Dashboard */}
+      {/* Welcome Section */}
       <div className="rounded-xl border bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6">
         <h1 className="text-2xl font-bold">Welcome back, {user?.name || 'Admin'}!</h1>
         <p className="mt-1 text-muted-foreground">Here's an overview of the platform.</p>
       </div>
 
-      {/* Stats Grid - Same as Customer Dashboard */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {loading ? (
-          [1, 2, 3, 4].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-4 text-center">
-                <div className="mx-auto h-8 w-16 animate-pulse rounded bg-muted/50" />
-                <div className="mx-auto mt-2 h-4 w-20 animate-pulse rounded bg-muted/50" />
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold">{stats.totalUsers}</p>
-                <p className="text-sm text-muted-foreground">Total Users</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold">{stats.totalTechnicians}</p>
-                <p className="text-sm text-muted-foreground">Technicians</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold">{stats.totalBookings}</p>
-                <p className="text-sm text-muted-foreground">Total Bookings</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold">${stats.totalRevenue?.toFixed(2) || '0.00'}</p>
-                <p className="text-sm text-muted-foreground">Revenue</p>
-              </CardContent>
-            </Card>
-          </>
-        )}
+        {loading
+          ? [1, 2, 3, 4].map((i) => (
+              <Card key={i}>
+                <CardContent className="p-4 text-center">
+                  <div className="mx-auto h-8 w-16 animate-pulse rounded bg-muted/50" />
+                  <div className="mx-auto mt-2 h-4 w-20 animate-pulse rounded bg-muted/50" />
+                </CardContent>
+              </Card>
+            ))
+          : statCards.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <Card key={stat.label}>
+                  <CardContent className="p-4 text-center">
+                    <div className="flex justify-center">
+                      <Icon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="mt-2 text-2xl font-bold">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
       </div>
 
-      {/* Recent Bookings - Same as Customer Dashboard */}
+      {/* Recent Bookings */}
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Recent Bookings</h2>

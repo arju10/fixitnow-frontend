@@ -72,6 +72,25 @@ export function useServices(filters?: ServiceFilters) {
     [fetchServices]
   );
 
+  const toggleServiceStatus = useCallback(
+    async (id: string, currentStatus: boolean) => {
+      try {
+        const response = await api.put(`/services/${id}`, {
+          isActive: !currentStatus,
+        });
+        if (response.data.success) {
+          await fetchServices();
+          toast.success(`Service ${currentStatus ? 'deactivated' : 'activated'} successfully`);
+          return response.data.data;
+        }
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Failed to update service status');
+        throw err;
+      }
+    },
+    [fetchServices]
+  );
+
   const deleteService = useCallback(
     async (id: string) => {
       try {
@@ -98,6 +117,7 @@ export function useServices(filters?: ServiceFilters) {
     getService,
     createService,
     updateService,
+    toggleServiceStatus,
     deleteService,
   };
 }

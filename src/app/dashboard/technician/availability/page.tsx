@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTechnicians } from '@/hooks/useTechnicians';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Plus, Trash2, Clock } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
+import { Plus, Trash2, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/axios';
 
@@ -21,17 +22,48 @@ const DAYS = [
 ];
 
 export default function TechnicianAvailabilityPage() {
-  const { availability, loading, fetchAvailability } = useTechnicians();
+  const { user } = useAuth();
+  const [availability, setAvailability] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
     dayOfWeek: 1,
     startTime: '09:00',
     endTime: '17:00',
   });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [slotToDelete, setSlotToDelete] = useState<{
+    id: string;
+    day: string;
+    time: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const fetchAvailability = async () => {
+    setLoading(true);
+    try {
+      console.log('🔍 Fetching availability for user:', user?.id);
+      const response = await api.get('/technicians/availability');
+      console.log('📦 Response:', response.data);
+      if (response.data.success) {
+        setAvailability(response.data.data);
+      } else {
+        setAvailability([]);
+      }
+    } catch (error: any) {
+      console.error('❌ Error fetching availability:', error.response?.data || error.message);
+      toast.error(error.response?.data?.message || 'Failed to load availability');
+      setAvailability([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchAvailability();
-  }, [fetchAvailability]);
+    if (user?.id) {
+      fetchAvailability();
+    }
+  }, [user?.id]);
 
   const handleAdd = async () => {
     if (!formData.startTime || !formData.endTime) {
@@ -63,14 +95,25 @@ export default function TechnicianAvailabilityPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this availability slot?')) return;
+  const handleDeleteClick = (id: string, day: string, time: string) => {
+    setSlotToDelete({ id, day, time });
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!slotToDelete) return;
+
+    setIsDeleting(true);
     try {
-      await api.delete(`/technicians/availability/${id}`);
+      await api.delete(`/technicians/availability/${slotToDelete.id}`);
       toast.success('Availability slot deleted');
       await fetchAvailability();
+      setDeleteModalOpen(false);
+      setSlotToDelete(null);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to delete availability');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -88,14 +131,46 @@ export default function TechnicianAvailabilityPage() {
 
   return (
     <div className="space-y-6">
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSlotToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Availability Slot"
+        description={`Are you sure you want to delete this availability slot for ${slotToDelete?.day} (${slotToDelete?.time})?`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmVariant="destructive"
+        isLoading={isDeleting}
+      >
+        <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0 text-red-500" />
+          <p className="text-sm text-red-700">
+            This slot will no longer be available for customers to book.
+          </p>
+        </div>
+      </Modal>
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold">Availability</h1>
-        {!isAdding && (
-          <Button onClick={() => setIsAdding(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Availability
+        <div>
+          <h1 className="text-2xl font-bold">Availability</h1>
+          <p className="text-sm text-muted-foreground">Set your working hours</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchAvailability} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh
           </Button>
-        )}
+          {!isAdding && (
+            <Button onClick={() => setIsAdding(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Availability
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Add Form */}
@@ -177,7 +252,7 @@ export default function TechnicianAvailabilityPage() {
                   {slots.map((slot: any) => (
                     <div
                       key={slot.id}
-                      className="flex items-center justify-between rounded-lg border p-3"
+                      className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/20"
                     >
                       <div className="flex items-center gap-3">
                         <Clock className="h-4 w-4 text-muted-foreground" />
@@ -188,7 +263,17 @@ export default function TechnicianAvailabilityPage() {
                           {slot.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </div>
-                      <Button size="sm" variant="destructive" onClick={() => handleDelete(slot.id)}>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() =>
+                          handleDeleteClick(
+                            slot.id,
+                            day.label,
+                            `${slot.startTime} - ${slot.endTime}`
+                          )
+                        }
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

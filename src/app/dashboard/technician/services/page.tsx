@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useServices } from '@/hooks/useServices';
 import { useCategories } from '@/hooks/useCategories';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,13 +10,13 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { Plus, Pencil, Trash2, X, Check, AlertTriangle } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Check, AlertTriangle, Power, PowerOff } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function TechnicianServicesPage() {
   const { user } = useAuth();
-  const { services, loading, fetchServices, createService, updateService, deleteService } =
+  const { services, loading, fetchServices, createService, updateService, toggleServiceStatus } =
     useServices();
   const { categories } = useCategories();
   const [isCreating, setIsCreating] = useState(false);
@@ -29,11 +28,13 @@ export default function TechnicianServicesPage() {
     durationMins: '',
     categoryId: '',
   });
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [serviceToDelete, setServiceToDelete] = useState<{ id: string; title: string } | null>(
-    null
-  );
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [serviceToToggle, setServiceToToggle] = useState<{
+    id: string;
+    title: string;
+    isActive: boolean;
+  } | null>(null);
+  const [isToggling, setIsToggling] = useState(false);
 
   // Filter services to show only the technician's own services
   const myServices = services.filter((service) => {
@@ -82,23 +83,23 @@ export default function TechnicianServicesPage() {
     }
   };
 
-  const handleDeleteClick = (id: string, title: string) => {
-    setServiceToDelete({ id, title });
-    setDeleteModalOpen(true);
+  const handleToggleStatusClick = (id: string, title: string, isActive: boolean) => {
+    setServiceToToggle({ id, title, isActive });
+    setStatusModalOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!serviceToDelete) return;
+  const handleConfirmToggle = async () => {
+    if (!serviceToToggle) return;
 
-    setIsDeleting(true);
+    setIsToggling(true);
     try {
-      await deleteService(serviceToDelete.id);
-      setDeleteModalOpen(false);
-      setServiceToDelete(null);
+      await toggleServiceStatus(serviceToToggle.id, serviceToToggle.isActive);
+      setStatusModalOpen(false);
+      setServiceToToggle(null);
     } catch (error) {
-      toast.error('Failed to delete service');
+      // Error already handled in hook
     } finally {
-      setIsDeleting(false);
+      setIsToggling(false);
     }
   };
 
@@ -125,27 +126,41 @@ export default function TechnicianServicesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Delete Confirmation Modal */}
+      {/* Status Toggle Confirmation Modal */}
       <Modal
-        isOpen={deleteModalOpen}
+        isOpen={statusModalOpen}
         onClose={() => {
-          setDeleteModalOpen(false);
-          setServiceToDelete(null);
+          setStatusModalOpen(false);
+          setServiceToToggle(null);
         }}
-        onConfirm={handleConfirmDelete}
-        title="Delete Service"
-        description={`Are you sure you want to delete "${serviceToDelete?.title}"? This action cannot be undone.`}
-        confirmText="Delete"
+        onConfirm={handleConfirmToggle}
+        title={serviceToToggle?.isActive ? 'Deactivate Service' : 'Activate Service'}
+        description={`Are you sure you want to ${serviceToToggle?.isActive ? 'deactivate' : 'activate'} "${serviceToToggle?.title}"?`}
+        confirmText={serviceToToggle?.isActive ? 'Deactivate' : 'Activate'}
         cancelText="Cancel"
-        confirmVariant="destructive"
-        isLoading={isDeleting}
+        confirmVariant={serviceToToggle?.isActive ? 'destructive' : 'default'}
+        isLoading={isToggling}
       >
-        <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3">
-          <AlertTriangle className="h-5 w-5 flex-shrink-0 text-red-500" />
-          <p className="text-sm text-red-700">
-            This action cannot be undone. All bookings associated with this service will be
-            affected.
-          </p>
+        <div
+          className={`flex items-center gap-3 rounded-lg border p-3 ${
+            serviceToToggle?.isActive ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'
+          }`}
+        >
+          {serviceToToggle?.isActive ? (
+            <>
+              <PowerOff className="h-5 w-5 flex-shrink-0 text-red-500" />
+              <p className="text-sm text-red-700">
+                This service will be hidden from customers. Existing bookings will not be affected.
+              </p>
+            </>
+          ) : (
+            <>
+              <Power className="h-5 w-5 flex-shrink-0 text-green-500" />
+              <p className="text-sm text-green-700">
+                This service will become visible to customers again.
+              </p>
+            </>
+          )}
         </div>
       </Modal>
 
@@ -345,10 +360,23 @@ export default function TechnicianServicesPage() {
                         </Button>
                         <Button
                           size="sm"
-                          variant="destructive"
-                          onClick={() => handleDeleteClick(service.id, service.title)}
+                          variant={service.isActive ? 'destructive' : 'default'}
+                          onClick={() =>
+                            handleToggleStatusClick(service.id, service.title, service.isActive)
+                          }
+                          className="gap-1"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {service.isActive ? (
+                            <>
+                              <PowerOff className="h-3 w-3" />
+                              Deactivate
+                            </>
+                          ) : (
+                            <>
+                              <Power className="h-3 w-3" />
+                              Activate
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
