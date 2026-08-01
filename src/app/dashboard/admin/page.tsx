@@ -110,7 +110,8 @@ export default function AdminDashboardPage() {
                   <div>
                     <p className="font-medium">{booking.service?.title}</p>
                     <p className="text-sm text-muted-foreground">
-                      {formatDate(booking.scheduledAt)} • {formatPrice(booking.totalAmount)}
+                      {booking.scheduledAt ? formatDate(booking.scheduledAt) : 'N/A'} •{' '}
+                      {formatPrice(booking.totalAmount)}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Customer: {booking.customer?.name}
