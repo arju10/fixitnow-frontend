@@ -89,7 +89,8 @@ export default function TechnicianBookingsPage() {
                           <BookingStatusBadge status={booking.status} />
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {formatDate(booking.scheduledAt)} • {formatPrice(booking.totalAmount)}
+                          {booking.scheduledAt ? formatDate(booking.scheduledAt) : 'N/A'} •{' '}
+                          {formatPrice(booking.totalAmount)}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Customer: {booking.customer?.name}
