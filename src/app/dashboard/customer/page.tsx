@@ -103,7 +103,8 @@ export default function CustomerDashboardPage() {
                     <div>
                       <p className="font-medium">{booking.service?.title}</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatDate(booking.scheduledAt)} • {formatPrice(booking.totalAmount)}
+                        {booking.scheduledAt ? formatDate(booking.scheduledAt) : 'N/A'} •{' '}
+                        {formatPrice(booking.totalAmount)}
                       </p>
                     </div>
                     <BookingStatusBadge status={booking.status} />
