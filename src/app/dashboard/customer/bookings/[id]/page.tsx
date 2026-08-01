@@ -1,29 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import api from '@/lib/axios';
+import { useCustomer } from '@/hooks/useCustomer';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { BookingStatusBadge } from '@/components/bookings/BookingStatusBadge';
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  User,
-  DollarSign,
-  CreditCard,
-  MessageSquare,
-} from 'lucide-react';
+import { ArrowLeft, Calendar, User, DollarSign, CreditCard, MessageSquare } from 'lucide-react';
 import { formatDate, formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
-export default function BookingDetailsPage() {
+export default function CustomerBookingDetailsPage() {
   const params = useParams();
-  const router = useRouter();
   const { user } = useAuth();
+  const { getBookingById, cancelBooking } = useCustomer();
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
@@ -31,10 +23,8 @@ export default function BookingDetailsPage() {
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const response = await api.get(`/bookings/${params.id}`);
-        if (response.data.success) {
-          setBooking(response.data.data);
-        }
+        const data = await getBookingById(params.id as string);
+        setBooking(data);
       } catch (error) {
         toast.error('Failed to load booking details');
       } finally {
@@ -42,18 +32,17 @@ export default function BookingDetailsPage() {
       }
     };
     fetchBooking();
-  }, [params.id]);
+  }, [params.id, getBookingById]);
 
   const handleCancel = async () => {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
 
     setCancelling(true);
     try {
-      const response = await api.patch(`/bookings/${params.id}/cancel`);
-      if (response.data.success) {
-        toast.success('Booking cancelled successfully');
-        setBooking({ ...booking, status: 'CANCELLED' });
-      }
+      await cancelBooking(params.id as string);
+      const updated = await getBookingById(params.id as string);
+      setBooking(updated);
+      toast.success('Booking cancelled successfully');
     } catch (error) {
       toast.error('Failed to cancel booking');
     } finally {
