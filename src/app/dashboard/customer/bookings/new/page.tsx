@@ -64,7 +64,6 @@ export default function NewBookingPage() {
     fetchService();
   }, [serviceId, getService, setValue]);
 
-  // Validate date is not in the past
   const validateDate = (value: string) => {
     if (!value) {
       setDateError('Please select a date and time');
@@ -81,33 +80,30 @@ export default function NewBookingPage() {
   };
 
   const onSubmit = async (data: BookingInput) => {
-    // Validate date
     if (!validateDate(data.scheduledAt)) {
       return;
     }
 
     setSubmitting(true);
     try {
-      // Format date for API
       const formattedData = {
         ...data,
         scheduledAt: new Date(data.scheduledAt).toISOString(),
       };
 
+      console.log('📝 Submitting booking:', formattedData);
       const booking = await createBooking(formattedData);
       toast.success('Booking created successfully!');
       router.push(`/dashboard/customer/bookings/${booking.id}`);
     } catch (error: any) {
+      console.error('❌ Booking error:', error);
       toast.error(error.response?.data?.message || 'Failed to create booking');
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
-  const now = new Date();
-  const defaultTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
   if (loading) {
     return (
@@ -142,7 +138,6 @@ export default function NewBookingPage() {
       <h1 className="text-2xl font-bold">Book This Service</h1>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Booking Form */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
@@ -194,7 +189,6 @@ export default function NewBookingPage() {
           </Card>
         </div>
 
-        {/* Service Summary */}
         <div className="lg:col-span-1">
           <Card className="sticky top-20">
             <CardHeader>
