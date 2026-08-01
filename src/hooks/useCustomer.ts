@@ -8,6 +8,7 @@ import { mapBooking } from '@/lib/mappers';
 export function useCustomer() {
   const [profile, setProfile] = useState<any>(null);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,13 +62,28 @@ export function useCustomer() {
     }
   }, []);
 
+  // ✅ Add fetchPayments method
+  const fetchPayments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/payments');
+      if (response.data.success) {
+        setPayments(response.data.data);
+        return response.data.data;
+      }
+    } catch (err) {
+      setError('Failed to fetch payments');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const getBookingById = useCallback(async (id: string) => {
     try {
       const response = await api.get(`/bookings/${id}`);
       if (response.data.success && response.data.data) {
         return mapBooking(response.data.data);
       }
-      // ✅ Return null if no data
       return null;
     } catch (err) {
       throw err;
@@ -144,11 +160,13 @@ export function useCustomer() {
   return {
     profile,
     bookings,
+    payments,
     loading,
     error,
     fetchProfile,
     updateProfile,
     fetchBookings,
+    fetchPayments,
     getBookingById,
     createBooking,
     cancelBooking,
