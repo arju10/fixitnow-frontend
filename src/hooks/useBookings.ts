@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import type { Booking } from '@/types';
+import { mapBooking } from '@/lib/mappers';
 
 export function useBookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -15,26 +16,43 @@ export function useBookings() {
     try {
       const response = await api.get('/bookings');
       if (response.data.success) {
-        setBookings(response.data.data);
+        const mapped = response.data.data.map(mapBooking);
+        setBookings(mapped);
       }
     } catch (err) {
       setError('Failed to fetch bookings');
-      toast.error('Failed to load bookings');
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  const getBookingById = useCallback(async (id: string) => {
+    try {
+      const response = await api.get(`/bookings/${id}`);
+      if (response.data.success) {
+        return mapBooking(response.data.data);
+      }
+      return null;
+    } catch (err) {
+      throw err;
     }
   }, []);
 
   const createBooking = useCallback(
     async (data: any) => {
       try {
+        console.log('📝 Creating booking with data:', data);
         const response = await api.post('/bookings', data);
+        console.log('📝 Booking response:', response.data);
         if (response.data.success) {
           await fetchBookings();
-          return response.data.data;
+          toast.success('Booking created successfully');
+          return mapBooking(response.data.data);
         }
-      } catch (err) {
-        toast.error('Failed to create booking');
+        throw new Error(response.data.message || 'Failed to create booking');
+      } catch (err: any) {
+        console.error('❌ Booking error:', err.response?.data || err.message);
+        toast.error(err.response?.data?.message || 'Failed to create booking');
         throw err;
       }
     },
@@ -48,10 +66,10 @@ export function useBookings() {
         if (response.data.success) {
           toast.success(`Booking ${status.toLowerCase()} successfully`);
           await fetchBookings();
-          return response.data.data;
+          return mapBooking(response.data.data);
         }
-      } catch (err) {
-        toast.error('Failed to update booking status');
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Failed to update booking status');
         throw err;
       }
     },
@@ -65,10 +83,10 @@ export function useBookings() {
         if (response.data.success) {
           toast.success('Booking cancelled successfully');
           await fetchBookings();
-          return response.data.data;
+          return mapBooking(response.data.data);
         }
-      } catch (err) {
-        toast.error('Failed to cancel booking');
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Failed to cancel booking');
         throw err;
       }
     },
@@ -84,6 +102,7 @@ export function useBookings() {
     loading,
     error,
     fetchBookings,
+    getBookingById,
     createBooking,
     updateBookingStatus,
     cancelBooking,
