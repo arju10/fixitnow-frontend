@@ -28,6 +28,14 @@ export default function PaymentPage() {
     const fetchBooking = async () => {
       try {
         const data = await getBookingById(params.id as string);
+
+        // ✅ Check if data exists before accessing properties
+        if (!data) {
+          toast.error('Booking not found');
+          setLoading(false);
+          return;
+        }
+
         setBooking(data);
 
         // Check if already paid
@@ -48,6 +56,11 @@ export default function PaymentPage() {
   }, [params.id, getBookingById]);
 
   const handlePayment = async () => {
+    if (!booking) {
+      toast.error('Booking data not available');
+      return;
+    }
+
     setProcessing(true);
     setPaymentStatus('processing');
 
@@ -69,7 +82,9 @@ export default function PaymentPage() {
 
         // Refresh booking data
         const updated = await getBookingById(params.id as string);
-        setBooking(updated);
+        if (updated) {
+          setBooking(updated);
+        }
 
         // Redirect to booking details after a moment
         setTimeout(() => {
