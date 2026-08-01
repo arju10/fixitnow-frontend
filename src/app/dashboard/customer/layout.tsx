@@ -44,7 +44,6 @@ export default function CustomerDashboardLayout({ children }: { children: React.
     <div className="min-h-screen bg-muted/20">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col gap-8 md:flex-row">
-          {/* Sidebar */}
           <aside className="flex-shrink-0 md:w-64">
             <div className="sticky top-20 rounded-xl border bg-card p-4 shadow-sm">
               <div className="space-y-1">
@@ -81,7 +80,6 @@ export default function CustomerDashboardLayout({ children }: { children: React.
             </div>
           </aside>
 
-          {/* Main Content */}
           <main className="min-w-0 flex-1">{children}</main>
         </div>
       </div>
