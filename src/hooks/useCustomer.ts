@@ -11,7 +11,6 @@ export function useCustomer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch customer profile
   const fetchProfile = useCallback(async () => {
     setLoading(true);
     try {
@@ -32,7 +31,6 @@ export function useCustomer() {
     }
   }, []);
 
-  // Update customer profile
   const updateProfile = useCallback(async (data: any) => {
     try {
       const response = await api.put('/customer/profile', data);
@@ -47,7 +45,6 @@ export function useCustomer() {
     }
   }, []);
 
-  // Fetch customer bookings
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
@@ -64,19 +61,19 @@ export function useCustomer() {
     }
   }, []);
 
-  // Get booking by ID
   const getBookingById = useCallback(async (id: string) => {
     try {
       const response = await api.get(`/bookings/${id}`);
-      if (response.data.success) {
+      if (response.data.success && response.data.data) {
         return mapBooking(response.data.data);
       }
+      // ✅ Return null if no data
+      return null;
     } catch (err) {
       throw err;
     }
   }, []);
 
-  // Create booking
   const createBooking = useCallback(
     async (data: any) => {
       try {
@@ -94,7 +91,6 @@ export function useCustomer() {
     [fetchBookings]
   );
 
-  // Cancel booking
   const cancelBooking = useCallback(
     async (bookingId: string) => {
       try {
@@ -112,7 +108,6 @@ export function useCustomer() {
     [fetchBookings]
   );
 
-  // Leave review
   const leaveReview = useCallback(
     async (data: { bookingId: string; rating: number; comment?: string }) => {
       try {
@@ -129,7 +124,6 @@ export function useCustomer() {
     []
   );
 
-  // Get reviews for technician
   const getTechnicianReviews = useCallback(async (technicianId: string) => {
     try {
       const response = await api.get(`/reviews/technician/${technicianId}`);
@@ -141,7 +135,6 @@ export function useCustomer() {
     }
   }, []);
 
-  // Initial load
   useEffect(() => {
     if (!profile && !loading) {
       fetchProfile();
