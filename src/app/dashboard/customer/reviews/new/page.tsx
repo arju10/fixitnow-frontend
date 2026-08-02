@@ -10,7 +10,7 @@ import { useCustomer } from '@/hooks/useCustomer';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { ArrowLeft, Star, User, Calendar } from 'lucide-react';
+import { ArrowLeft, Star, User, Calendar, AlertCircle } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -68,10 +68,12 @@ export default function NewReviewPage() {
     setSubmitting(true);
     try {
       await leaveReview(data);
-      toast.success('Review submitted successfully!');
+      // ✅ Success is handled in the hook with toast
       router.push(`/dashboard/customer/bookings/${bookingId}`);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to submit review');
+      // ✅ Error is already handled in the hook
+      // Just log for debugging
+      console.error('Review submission failed:', error);
     } finally {
       setSubmitting(false);
     }
@@ -126,6 +128,7 @@ export default function NewReviewPage() {
     );
   }
 
+  // ✅ Check if review already exists
   if (booking.review) {
     return (
       <div className="space-y-6">
