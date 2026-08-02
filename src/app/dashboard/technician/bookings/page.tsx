@@ -3,38 +3,44 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useBookings } from '@/hooks/useBookings';
+import { useSearch } from '@/hooks/useSearch';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { BookingStatusBadge } from '@/components/bookings/BookingStatusBadge';
 import { Card, CardContent } from '@/components/ui/Card';
-import { Search, Calendar, ArrowRight, CheckCircle, XCircle, PlayCircle } from 'lucide-react';
+import { SearchFilters } from '@/components/SearchFilters';
+import { Calendar, CheckCircle, XCircle, PlayCircle } from 'lucide-react';
 import { formatDate, formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
+const statusOptions = [
+  { value: 'REQUESTED', label: 'Requested' },
+  { value: 'ACCEPTED', label: 'Accepted' },
+  { value: 'DECLINED', label: 'Declined' },
+  { value: 'PAID', label: 'Paid' },
+  { value: 'IN_PROGRESS', label: 'In Progress' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+];
+
 export default function TechnicianBookingsPage() {
   const { bookings, loading, fetchBookings, updateBookingStatus } = useBookings();
-  const [search, setSearch] = useState('');
-  const [filteredBookings, setFilteredBookings] = useState(bookings);
+  const [allBookings, setAllBookings] = useState<any[]>([]);
+
+  const { filters, filteredItems, updateFilter, clearFilters, hasFilters } = useSearch(
+    allBookings,
+    ['service.title', 'customer.name', 'status'],
+    [{ key: 'status', type: 'status' }]
+  );
 
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
 
   useEffect(() => {
-    if (search.trim() === '') {
-      setFilteredBookings(bookings);
-    } else {
-      const query = search.toLowerCase();
-      setFilteredBookings(
-        bookings.filter(
-          (b) =>
-            b.service?.title?.toLowerCase().includes(query) ||
-            b.status?.toLowerCase().includes(query) ||
-            b.customer?.name?.toLowerCase().includes(query)
-        )
-      );
+    if (bookings) {
+      setAllBookings(bookings);
     }
-  }, [search, bookings]);
+  }, [bookings]);
 
   const handleStatusUpdate = async (bookingId: string, status: string) => {
     try {
@@ -51,28 +57,36 @@ export default function TechnicianBookingsPage() {
         <h1 className="text-2xl font-bold">My Bookings</h1>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search bookings..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
-      </div>
+      {/* Search Filters */}
+      <SearchFilters
+        filters={filters}
+        updateFilter={updateFilter}
+        clearFilters={clearFilters}
+        hasFilters={hasFilters}
+        statusOptions={statusOptions}
+        placeholder="Search by service, customer, or status..."
+        showLocation={false}
+        showPrice={false}
+        showRating={false}
+        showDate={true}
+      />
 
-      {/* Bookings List */}
+      {/* Results Count */}
+      {!loading && (
+        <p className="text-sm text-muted-foreground">
+          Showing {filteredItems.length} {filteredItems.length === 1 ? 'booking' : 'bookings'}
+        </p>
+      )}
+
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-24 animate-pulse rounded-lg bg-muted/50 p-4" />
           ))}
         </div>
-      ) : filteredBookings.length > 0 ? (
+      ) : filteredItems.length > 0 ? (
         <div className="space-y-4">
-          {filteredBookings.map((booking) => {
+          {filteredItems.map((booking) => {
             const isPending = booking.status === 'REQUESTED';
             const isAccepted = booking.status === 'ACCEPTED' || booking.status === 'PAID';
             const isInProgress = booking.status === 'IN_PROGRESS';
@@ -89,8 +103,7 @@ export default function TechnicianBookingsPage() {
                           <BookingStatusBadge status={booking.status} />
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {booking.scheduledAt ? formatDate(booking.scheduledAt) : 'N/A'} •{' '}
-                          {formatPrice(booking.totalAmount)}
+                          {formatDate(booking.scheduledAt)} • {formatPrice(booking.totalAmount)}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Customer: {booking.customer?.name}
@@ -156,7 +169,7 @@ export default function TechnicianBookingsPage() {
           <Calendar className="mx-auto h-12 w-12 text-muted-foreground/50" />
           <h3 className="mt-4 text-lg font-medium">No bookings found</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {search ? 'Try adjusting your search' : 'You have no bookings yet'}
+            {hasFilters ? 'Try adjusting your filters' : 'You have no bookings yet'}
           </p>
         </div>
       )}
