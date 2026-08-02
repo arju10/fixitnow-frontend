@@ -4,112 +4,60 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useServices } from '@/hooks/useServices';
 import { useCategories } from '@/hooks/useCategories';
+import { useSearch } from '@/hooks/useSearch';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Search, Filter, X } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import { SearchFilters } from '@/components/SearchFilters';
 import { ServiceCardSkeleton } from '@/components/ui/Skeleton';
+import { formatPrice } from '@/lib/utils';
 
 export default function ServicesPage() {
   const { services, loading, fetchServices } = useServices();
   const { categories } = useCategories();
-  const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [filteredServices, setFilteredServices] = useState(services);
+  const [allServices, setAllServices] = useState<any[]>([]);
+
+  const { filters, filteredItems, updateFilter, clearFilters, hasFilters } = useSearch(
+    allServices,
+    ['title', 'description', 'category.name', 'technician.user.name'],
+    [
+      { key: 'category', type: 'string' },
+      { key: 'price', type: 'number' },
+      { key: 'avgRating', type: 'number' },
+    ]
+  );
 
   useEffect(() => {
     fetchServices();
   }, [fetchServices]);
 
   useEffect(() => {
-    let filtered = services;
-
-    if (search.trim() !== '') {
-      const query = search.toLowerCase();
-      filtered = filtered.filter(
-        (s) =>
-          s.title.toLowerCase().includes(query) ||
-          s.description?.toLowerCase().includes(query) ||
-          s.category?.name?.toLowerCase().includes(query)
-      );
+    if (services) {
+      setAllServices(services);
     }
-
-    if (selectedCategory) {
-      filtered = filtered.filter((s) => s.categoryId === selectedCategory);
-    }
-
-    if (minPrice) {
-      filtered = filtered.filter((s) => s.price >= parseFloat(minPrice));
-    }
-
-    if (maxPrice) {
-      filtered = filtered.filter((s) => s.price <= parseFloat(maxPrice));
-    }
-
-    setFilteredServices(filtered);
-  }, [search, selectedCategory, minPrice, maxPrice, services]);
-
-  const clearFilters = () => {
-    setSearch('');
-    setSelectedCategory('');
-    setMinPrice('');
-    setMaxPrice('');
-  };
+  }, [services]);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Services</h1>
 
-      {/* Filters */}
-      <div className="mb-6 space-y-4">
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search services..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <select
-            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm sm:w-48"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="">All Categories</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-          <Input
-            type="number"
-            placeholder="Min Price"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-            className="sm:w-32"
-          />
-          <Input
-            type="number"
-            placeholder="Max Price"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            className="sm:w-32"
-          />
-        </div>
-        {(search || selectedCategory || minPrice || maxPrice) && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
-            <X className="h-4 w-4" />
-            Clear Filters
-          </Button>
-        )}
-      </div>
+      {/* Search Filters */}
+      <SearchFilters
+        filters={filters}
+        updateFilter={updateFilter}
+        clearFilters={clearFilters}
+        hasFilters={hasFilters}
+        categories={categories}
+        placeholder="Search services by title, description, or technician..."
+        showLocation={false}
+        className="mb-6"
+      />
+
+      {/* Results Count */}
+      {!loading && (
+        <p className="mb-4 text-sm text-muted-foreground">
+          Showing {filteredItems.length} {filteredItems.length === 1 ? 'service' : 'services'}
+        </p>
+      )}
 
       {/* Results */}
       {loading ? (
@@ -118,9 +66,9 @@ export default function ServicesPage() {
             <ServiceCardSkeleton key={i} />
           ))}
         </div>
-      ) : filteredServices.length > 0 ? (
+      ) : filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredServices.map((service) => (
+          {filteredItems.map((service) => (
             <Link href={`/services/${service.id}`} key={service.id}>
               <Card className="h-full cursor-pointer transition-shadow hover:shadow-lg">
                 <CardHeader>
