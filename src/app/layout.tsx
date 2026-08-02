@@ -18,16 +18,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider>
-          <SessionProvider>
+        <SessionProvider>
+          <ThemeProvider>
             <div className="flex min-h-screen flex-col bg-background text-foreground">
               <Navbar />
               <main className="flex-1">{children}</main>
               <Footer />
             </div>
             <ToastProvider />
-          </SessionProvider>
-        </ThemeProvider>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );
