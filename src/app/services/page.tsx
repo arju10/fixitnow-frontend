@@ -49,6 +49,10 @@ export default function ServicesPage() {
         categories={categories}
         placeholder="Search services by title, description, or technician..."
         showLocation={false}
+        showPrice={true}
+        showRating={true}
+        showStatus={false}
+        showDate={false}
         className="mb-6"
       />
 
