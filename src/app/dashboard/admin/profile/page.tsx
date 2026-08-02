@@ -36,12 +36,12 @@ export default function AdminProfilePage() {
         phone: formData.phone,
       });
       if (response.data.success) {
+        await update();
         toast.success('Profile updated successfully');
         setIsEditing(false);
-        await update();
       }
-    } catch (error) {
-      toast.error('Failed to update profile');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,6 @@ export default function AdminProfilePage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Profile Info */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
@@ -127,7 +126,6 @@ export default function AdminProfilePage() {
           </Card>
         </div>
 
-        {/* Quick Stats */}
         <div className="space-y-4 lg:col-span-1">
           <Card>
             <CardHeader>
