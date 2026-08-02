@@ -42,16 +42,32 @@ export default function CustomerProfilePage() {
 
   const handleUpdate = async () => {
     try {
+      // Update customer profile
       await updateProfile({
         address: formData.address,
         city: formData.city,
         postalCode: formData.postalCode,
       });
-      // Also update user name and phone
-      await update({ name: formData.name, phone: formData.phone });
-      setIsEditing(false);
-    } catch (error) {
-      // Error handled in hook
+
+      // Update user name and phone
+      const updateResponse = await fetch('/api/auth/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone,
+        }),
+      });
+
+      if (updateResponse.ok) {
+        await update();
+        toast.success('Profile updated successfully');
+        setIsEditing(false);
+      } else {
+        toast.error('Failed to update user details');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update profile');
     }
   };
 
