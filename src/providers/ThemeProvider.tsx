@@ -36,8 +36,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
+  // ✅ Prevent hydration mismatch by not rendering children until mounted
   if (!mounted) {
-    return <>{children}</>;
+    return <div style={{ visibility: 'hidden' }}>{children}</div>;
   }
 
   return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
