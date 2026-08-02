@@ -127,9 +127,7 @@ export default function CustomerPaymentsPage() {
                       {getStatusIcon(payment.status)}
                     </div>
                     <div>
-                      <p className="font-medium">
-                        {payment.booking?.service?.title || 'Payment'}
-                      </p>
+                      <p className="font-medium">{payment.booking?.service?.title || 'Payment'}</p>
                       <p className="text-sm text-muted-foreground">
                         {formatDate(payment.createdAt)}
                       </p>
@@ -164,7 +162,7 @@ export default function CustomerPaymentsPage() {
           <CreditCard className="mx-auto h-12 w-12 text-muted-foreground/50" />
           <h3 className="mt-4 text-lg font-medium">No payments found</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {hasFilters ? 'Try adjusting your filters' : 'You haven't made any payments yet.'}
+            {hasFilters ? 'Try adjusting your filters' : "You haven't made any payments yet."}
           </p>
           <Link href="/services">
             <button className="mt-4 inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">

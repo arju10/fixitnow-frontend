@@ -85,7 +85,8 @@ export function useSearch<T extends Record<string, any>>(
     return result;
   }, [items, filters, searchFields]);
 
-  const updateFilter = useCallback((key: keyof SearchFilters, value: any) => {
+  // ✅ Fix: Use string parameter to match SearchFilters component
+  const updateFilter = useCallback((key: string, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
