@@ -17,13 +17,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    // Check localStorage for saved theme
     const savedTheme = localStorage.getItem('theme') as Theme | null;
-    // Check system preference
     const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light';
-
     const initialTheme = savedTheme || systemPreference;
     setTheme(initialTheme);
     document.documentElement.classList.toggle('dark', initialTheme === 'dark');
@@ -36,9 +33,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
-  // ✅ Prevent hydration mismatch by not rendering children until mounted
+  // During SSR and before hydration, render children without theme context
   if (!mounted) {
-    return <div style={{ visibility: 'hidden' }}>{children}</div>;
+    return <>{children}</>;
   }
 
   return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
