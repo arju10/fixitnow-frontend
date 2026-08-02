@@ -135,13 +135,25 @@ export function useCustomer() {
   const leaveReview = useCallback(
     async (data: { bookingId: string; rating: number; comment?: string }) => {
       try {
+        console.log('📝 Submitting review:', data);
         const response = await api.post('/reviews', data);
+        console.log('📝 Review response:', response.data);
         if (response.data.success) {
-          toast.success('Review submitted successfully');
+          toast.success('Review submitted successfully!');
           return response.data.data;
         }
+        throw new Error(response.data.message || 'Failed to submit review');
       } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Failed to submit review');
+        console.error('❌ Review error:', err.response?.data || err.message);
+
+        // Handle specific error cases
+        if (err.response?.status === 409) {
+          toast.error('You have already reviewed this booking');
+        } else if (err.response?.status === 404) {
+          toast.error('Booking not found');
+        } else {
+          toast.error(err.response?.data?.message || 'Failed to submit review');
+        }
         throw err;
       }
     },
