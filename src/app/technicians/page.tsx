@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTechnicians } from '@/hooks/useTechnicians';
+import { useSearch } from '@/hooks/useSearch';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { SearchFilters } from '@/components/SearchFilters';
 import { Search, MapPin, Star, User, Briefcase } from 'lucide-react';
 import { TechnicianCardSkeleton } from '@/components/ui/Skeleton';
 
@@ -24,20 +26,21 @@ interface Technician {
 
 export default function TechniciansPage() {
   const { technicians, loading, fetchTechnicians } = useTechnicians();
-  const [search, setSearch] = useState('');
-  const [location, setLocation] = useState('');
-  const [filteredTechnicians, setFilteredTechnicians] = useState<Technician[]>([]);
+  const [allTechnicians, setAllTechnicians] = useState<Technician[]>([]);
+
+  const { filters, filteredItems, updateFilter, clearFilters, hasFilters } = useSearch(
+    allTechnicians,
+    ['user.name', 'bio', 'location'],
+    [{ key: 'location', type: 'string' }]
+  );
 
   useEffect(() => {
-    const params: any = {};
-    if (search) params.search = search;
-    if (location) params.location = location;
-    fetchTechnicians(params);
-  }, [search, location, fetchTechnicians]);
+    fetchTechnicians();
+  }, [fetchTechnicians]);
 
   useEffect(() => {
     if (technicians) {
-      setFilteredTechnicians(technicians);
+      setAllTechnicians(technicians);
     }
   }, [technicians]);
 
@@ -45,23 +48,27 @@ export default function TechniciansPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Technicians</h1>
 
-      {/* Search */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-        <Input
-          type="text"
-          placeholder="Search technicians..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="sm:flex-1"
-        />
-        <Input
-          type="text"
-          placeholder="Location..."
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          className="sm:w-48"
-        />
-      </div>
+      {/* Search Filters */}
+      <SearchFilters
+        filters={filters}
+        updateFilter={updateFilter}
+        clearFilters={clearFilters}
+        hasFilters={hasFilters}
+        placeholder="Search technicians by name, bio, or location..."
+        showLocation={true}
+        showPrice={false}
+        showRating={true}
+        showStatus={false}
+        showDate={false}
+        className="mb-6"
+      />
+
+      {/* Results Count */}
+      {!loading && (
+        <p className="mb-4 text-sm text-muted-foreground">
+          Showing {filteredItems.length} {filteredItems.length === 1 ? 'technician' : 'technicians'}
+        </p>
+      )}
 
       {/* Results */}
       {loading ? (
@@ -70,9 +77,9 @@ export default function TechniciansPage() {
             <TechnicianCardSkeleton key={i} />
           ))}
         </div>
-      ) : filteredTechnicians.length > 0 ? (
+      ) : filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredTechnicians.map((tech: Technician) => (
+          {filteredItems.map((tech: Technician) => (
             <Link href={`/technicians/${tech.id}`} key={tech.id}>
               <Card className="h-full cursor-pointer transition-shadow hover:shadow-lg">
                 <CardHeader>
@@ -116,7 +123,7 @@ export default function TechniciansPage() {
       ) : (
         <div className="rounded-lg border py-12 text-center">
           <p className="text-lg text-muted-foreground">No technicians found</p>
-          <p className="mt-1 text-sm text-muted-foreground">Try adjusting your search</p>
+          <p className="mt-1 text-sm text-muted-foreground">Try adjusting your filters</p>
         </div>
       )}
     </div>
