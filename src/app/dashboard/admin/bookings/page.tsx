@@ -55,10 +55,24 @@ export default function AdminBookingsPage() {
     setLoading(true);
     try {
       const data = await adminApi.getBookings();
-      setBookings(data);
-      setFilteredBookings(data);
+      console.log('📋 Bookings data:', data);
+
+      // ✅ Handle both array and paginated response
+      if (data && Array.isArray(data)) {
+        setBookings(data);
+        setFilteredBookings(data);
+      } else if (data && data.bookings) {
+        setBookings(data.bookings);
+        setFilteredBookings(data.bookings);
+      } else {
+        setBookings([]);
+        setFilteredBookings([]);
+      }
     } catch (error) {
+      console.error('❌ Failed to fetch bookings:', error);
       toast.error('Failed to fetch bookings');
+      setBookings([]);
+      setFilteredBookings([]);
     } finally {
       setLoading(false);
     }
@@ -111,7 +125,6 @@ export default function AdminBookingsPage() {
         </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -145,7 +158,6 @@ export default function AdminBookingsPage() {
         </div>
       </div>
 
-      {/* Bookings Table */}
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -188,7 +200,7 @@ export default function AdminBookingsPage() {
                       {booking.service?.title || 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {booking.customer?.name}
+                      {booking.customer?.name || 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
                       {booking.technician?.user?.name || 'N/A'}
@@ -197,11 +209,11 @@ export default function AdminBookingsPage() {
                       {booking.scheduledAt ? formatDate(booking.scheduledAt) : 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-sm font-medium">
-                      {formatPrice(booking.totalAmount)}
+                      {formatPrice(booking.totalAmount || 0)}
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant={getStatusBadgeVariant(booking.status)}>
-                        {booking.status}
+                        {booking.status || 'UNKNOWN'}
                       </Badge>
                     </td>
                   </tr>
