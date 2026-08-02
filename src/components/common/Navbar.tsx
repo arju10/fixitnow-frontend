@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { useTheme } from '@/providers/ThemeProvider';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Home, Briefcase, Users, LogOut, Menu, X, User, LayoutDashboard } from 'lucide-react';
@@ -13,7 +12,6 @@ import { cn } from '@/lib/utils';
 export function Navbar() {
   const pathname = usePathname();
   const { user, role, isAuthenticated, logout } = useAuth();
-  const { theme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
