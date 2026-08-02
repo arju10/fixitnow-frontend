@@ -40,6 +40,10 @@ export function SearchFilters({
 }: SearchFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const handleUpdateFilter = (key: string, value: any) => {
+    updateFilter(key, value);
+  };
+
   return (
     <div className={cn('space-y-4', className)}>
       {/* Main Search Bar */}
@@ -50,7 +54,7 @@ export function SearchFilters({
             type="text"
             placeholder={placeholder}
             value={filters.query || ''}
-            onChange={(e) => updateFilter('query', e.target.value)}
+            onChange={(e) => handleUpdateFilter('query', e.target.value)}
             className="pl-10"
           />
         </div>
@@ -80,43 +84,64 @@ export function SearchFilters({
           {filters.query && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Search: {filters.query}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => updateFilter('query', '')} />
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleUpdateFilter('query', '')}
+              />
             </Badge>
           )}
           {filters.category && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Category: {filters.category}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => updateFilter('category', '')} />
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleUpdateFilter('category', '')}
+              />
             </Badge>
           )}
           {filters.location && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Location: {filters.location}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => updateFilter('location', '')} />
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleUpdateFilter('location', '')}
+              />
             </Badge>
           )}
           {filters.minPrice && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Min: ${filters.minPrice}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => updateFilter('minPrice', '')} />
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleUpdateFilter('minPrice', '')}
+              />
             </Badge>
           )}
           {filters.maxPrice && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Max: ${filters.maxPrice}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => updateFilter('maxPrice', '')} />
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleUpdateFilter('maxPrice', '')}
+              />
             </Badge>
           )}
           {filters.rating && (
             <Badge variant="secondary" className="flex items-center gap-1">
               ⭐ {filters.rating}+
-              <X className="h-3 w-3 cursor-pointer" onClick={() => updateFilter('rating', '')} />
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleUpdateFilter('rating', '')}
+              />
             </Badge>
           )}
           {filters.status && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Status: {filters.status}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => updateFilter('status', '')} />
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => handleUpdateFilter('status', '')}
+              />
             </Badge>
           )}
         </div>
@@ -132,7 +157,7 @@ export function SearchFilters({
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={filters.category || ''}
-                onChange={(e) => updateFilter('category', e.target.value)}
+                onChange={(e) => handleUpdateFilter('category', e.target.value)}
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
@@ -152,7 +177,7 @@ export function SearchFilters({
                 type="text"
                 placeholder="Enter location..."
                 value={filters.location || ''}
-                onChange={(e) => updateFilter('location', e.target.value)}
+                onChange={(e) => handleUpdateFilter('location', e.target.value)}
               />
             </div>
           )}
@@ -167,7 +192,7 @@ export function SearchFilters({
                   placeholder="Min"
                   value={filters.minPrice || ''}
                   onChange={(e) =>
-                    updateFilter('minPrice', e.target.value ? Number(e.target.value) : '')
+                    handleUpdateFilter('minPrice', e.target.value ? Number(e.target.value) : '')
                   }
                   className="w-1/2"
                 />
@@ -176,7 +201,7 @@ export function SearchFilters({
                   placeholder="Max"
                   value={filters.maxPrice || ''}
                   onChange={(e) =>
-                    updateFilter('maxPrice', e.target.value ? Number(e.target.value) : '')
+                    handleUpdateFilter('maxPrice', e.target.value ? Number(e.target.value) : '')
                   }
                   className="w-1/2"
                 />
@@ -192,7 +217,7 @@ export function SearchFilters({
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={filters.rating || ''}
                 onChange={(e) =>
-                  updateFilter('rating', e.target.value ? Number(e.target.value) : '')
+                  handleUpdateFilter('rating', e.target.value ? Number(e.target.value) : '')
                 }
               >
                 <option value="">Any Rating</option>
@@ -212,7 +237,7 @@ export function SearchFilters({
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={filters.status || ''}
-                onChange={(e) => updateFilter('status', e.target.value)}
+                onChange={(e) => handleUpdateFilter('status', e.target.value)}
               >
                 <option value="">All Status</option>
                 {statusOptions.map((opt) => (
@@ -232,13 +257,13 @@ export function SearchFilters({
                 <Input
                   type="date"
                   value={filters.dateFrom || ''}
-                  onChange={(e) => updateFilter('dateFrom', e.target.value)}
+                  onChange={(e) => handleUpdateFilter('dateFrom', e.target.value)}
                   className="w-1/2"
                 />
                 <Input
                   type="date"
                   value={filters.dateTo || ''}
-                  onChange={(e) => updateFilter('dateTo', e.target.value)}
+                  onChange={(e) => handleUpdateFilter('dateTo', e.target.value)}
                   className="w-1/2"
                 />
               </div>
