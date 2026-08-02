@@ -22,9 +22,9 @@ export default function TechnicianDashboardPage() {
     completed: 0,
   });
 
+  // ✅ FIX: Only use user.id for comparison
   const myServices = services.filter((service) => {
-    const technicianUserId = service.technician?.user?.id || service.technician?.userId;
-    return technicianUserId === user?.id;
+    return service.technician?.user?.id === user?.id;
   });
 
   useEffect(() => {
@@ -46,7 +46,6 @@ export default function TechnicianDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
       <div className="rounded-xl border bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6">
         <h1 className="text-2xl font-bold">Welcome back, {user?.name || 'Technician'}!</h1>
         <p className="mt-1 text-muted-foreground">
@@ -54,7 +53,6 @@ export default function TechnicianDashboardPage() {
         </p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4 text-center">
@@ -82,7 +80,6 @@ export default function TechnicianDashboardPage() {
         </Card>
       </div>
 
-      {/* Pending Requests */}
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Pending Requests</h2>
@@ -108,8 +105,7 @@ export default function TechnicianDashboardPage() {
                     <div>
                       <p className="font-medium">{booking.service?.title}</p>
                       <p className="text-sm text-muted-foreground">
-                        {booking.scheduledAt ? formatDate(booking.scheduledAt) : 'N/A'} •{' '}
-                        {formatPrice(booking.totalAmount)}
+                        {formatDate(booking.scheduledAt)} • {formatPrice(booking.totalAmount)}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         Customer: {booking.customer?.name}
@@ -130,7 +126,6 @@ export default function TechnicianDashboardPage() {
         )}
       </div>
 
-      {/* Services Summary - Showing only technician's services */}
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">My Services</h2>
