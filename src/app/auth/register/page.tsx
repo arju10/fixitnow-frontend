@@ -15,7 +15,7 @@ import toast from 'react-hot-toast';
 const roleOptions = [
   { value: 'CUSTOMER', label: 'Customer', icon: '👤', description: 'Book services' },
   { value: 'TECHNICIAN', label: 'Technician', icon: '🔧', description: 'Provide services' },
-  { value: 'ADMIN', label: 'Admin', icon: '🛡️', description: 'Manage platform' },
+  // { value: 'ADMIN', label: 'Admin', icon: '🛡️', description: 'Manage platform' },
 ];
 
 function RegisterForm() {
@@ -151,7 +151,7 @@ function RegisterForm() {
               <label className="mb-2 block text-sm font-medium text-gray-700">
                 I want to join as
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {roleOptions.map((option) => (
                   <label
                     key={option.value}
