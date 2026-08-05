@@ -6,7 +6,7 @@
 
 **Live Link:** [fixitnow-frontend-ruby.vercel.app/](https://fixitnow-frontend-ruby.vercel.app/)
 
-**Frontend Github:** [https://github.com/arju10/fixitnow-frontend.git](https://github.com/arju10/fixitnow-frontend.git)
+**Frontend Github:** [https://github.com/arju10/fixitnow.git](https://github.com/arju10/fixitnow.git)
 
 **Backend Github:** [https://github.com/arju10/fixitnow-backend.git](https://github.com/arju10/fixitnow-backend.git)
 
@@ -126,7 +126,7 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/arju10/fixitnow-frontend.git
+git clone https://github.com/arju10/fixitnow.git
 cd fixitnow-frontend
 ```
 
