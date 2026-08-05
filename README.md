@@ -6,9 +6,9 @@
 
 **Live Link:** [fixitnow-frontend-ruby.vercel.app/](https://fixitnow-frontend-ruby.vercel.app/)
 
-**Frontend Github:** [https://github.com/arju10/fixitnow.git](https://github.com/arju10/fixitnow.git)
+**Frontend Github:** [https://github.com/arju10/fixitnow](https://github.com/arju10/fixitnow)
 
-**Backend Github:** [https://github.com/arju10/fixitnow-backend.git](https://github.com/arju10/fixitnow-backend.git)
+**Backend Github:** [https://github.com/arju10/fixitnow-backend](https://github.com/arju10/fixitnow-backend)
 
 **Backend Live:** [https://fixitnow-backend-psi.vercel.app/](https://fixitnow-backend-psi.vercel.app/)
 
